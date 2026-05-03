@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useRef, useState } from 'react'
+import { type ChangeEvent, useRef, useState } from 'react'
 import { CheckSquare, ImagePlus, Pencil, Plus, Square, Trash2, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useApi } from '@/hooks/useApi'
@@ -162,12 +162,11 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
     }
   }
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     setSaving(true)
     try {
       if (modal.mode === 'create') {
-        await adminCreateProject(formToApiData(form))
+        await adminCreateProject({ ...formToApiData(form), screenshots: [] })
         toast.success('Project created')
       } else {
         await adminUpdateProject(modal.project.id, formToApiData(form))
@@ -201,7 +200,7 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="space-y-5">
           {/* Basic */}
           <section className="space-y-4">
             <h3 className="text-sm font-semibold text-brand-accent uppercase tracking-wide">Basic</h3>
@@ -350,7 +349,8 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
 
           <div className="flex items-center gap-3 pt-2">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={saving}
               className="btn-primary flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
@@ -359,7 +359,7 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
             </button>
             <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )
