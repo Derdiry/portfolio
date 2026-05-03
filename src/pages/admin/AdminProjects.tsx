@@ -84,7 +84,7 @@ function projectToForm(p: Project): ProjectFormState {
   }
 }
 
-function formToApiData(form: ProjectFormState): Omit<ApiProject, 'created_at'> {
+function formToApiData(form: ProjectFormState): Omit<ApiProject, 'created_at' | 'screenshots'> {
   return {
     id: form.id,
     title: form.title,
@@ -103,7 +103,6 @@ function formToApiData(form: ProjectFormState): Omit<ApiProject, 'created_at'> {
     github_url: form.github_url || null,
     demo_url: form.demo_url || null,
     architecture_image: null,
-    screenshots: [],
   }
 }
 
