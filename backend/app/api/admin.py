@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from PIL import Image
-from sqlalchemy import func, select
+from sqlalchemy import func, literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -335,14 +335,15 @@ async def get_analytics_stats(db: AsyncSession = Depends(get_db)):
 
     # Views last 30 days (daily)
     since = datetime.now(timezone.utc) - timedelta(days=30)
+    day_col = literal_column("date_trunc('day', analytics.timestamp)")
     daily_result = await db.execute(
         select(
-            func.date_trunc("day", Analytics.timestamp).label("day"),
+            day_col.label("day"),
             func.count(Analytics.id).label("count"),
         )
         .where(Analytics.timestamp >= since)
-        .group_by(func.date_trunc("day", Analytics.timestamp))
-        .order_by(func.date_trunc("day", Analytics.timestamp))
+        .group_by(day_col)
+        .order_by(day_col)
     )
     views_last_30 = [
         {"date": str(row.day)[:10], "views": row.count}
