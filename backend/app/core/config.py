@@ -7,6 +7,14 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://portfolio:portfolio@localhost:5432/portfolio"
     database_url_sync: str = "postgresql://portfolio:portfolio@localhost:5432/portfolio"
 
+    def __init__(self, **data):
+        super().__init__(**data)
+        # Railway injects postgresql:// but asyncpg needs postgresql+asyncpg://
+        if self.database_url.startswith("postgresql://"):
+            self.database_url = self.database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        if self.database_url.startswith("postgres://"):
+            self.database_url = self.database_url.replace("postgres://", "postgresql+asyncpg://", 1)
+
     jwt_secret: str = "dev-secret-change-in-production"
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440
