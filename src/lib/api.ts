@@ -62,6 +62,7 @@ export interface ApiProject {
   github_url: string | null
   demo_url: string | null
   architecture_image: string | null
+  screenshots: string[]
   featured: boolean
   priority: number
   created_at: string
@@ -196,10 +197,27 @@ export function mapProject(p: ApiProject): Project {
     githubUrl: p.github_url ?? undefined,
     demoUrl: p.demo_url ?? undefined,
     architectureImage: p.architecture_image ?? undefined,
+    screenshots: p.screenshots ?? [],
     featured: p.featured,
     priority: p.priority,
   }
 }
+
+export const adminUploadScreenshot = (projectId: string, file: File) => {
+  const form = new FormData()
+  form.append('file', file)
+  return request<ApiProject>(`/api/admin/projects/${projectId}/screenshots`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+    body: form,
+  })
+}
+
+export const adminDeleteScreenshot = (projectId: string, filename: string) =>
+  request<ApiProject>(`/api/admin/projects/${projectId}/screenshots/${filename}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+  })
 
 export function mapExperience(e: ApiExperience): Experience {
   return {

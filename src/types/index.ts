@@ -24,6 +24,7 @@ export interface Project {
   githubUrl?: string
   demoUrl?: string
   architectureImage?: string
+  screenshots: string[]
   featured: boolean
   priority: number
 }

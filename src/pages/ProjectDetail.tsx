@@ -1,13 +1,20 @@
+import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Github, ExternalLink, CheckCircle2, AlertCircle, BarChart2 } from 'lucide-react'
+import { ArrowLeft, Github, ExternalLink, CheckCircle2, AlertCircle, BarChart2, X } from 'lucide-react'
 import { getProjectById } from '@/data/projects'
 import { CATEGORY_META, STATUS_META } from '@/components/projects/meta'
 import Seo from '@/components/Seo'
+import { useApi } from '@/hooks/useApi'
+import { getProject, mapProject } from '@/lib/api'
+import { getPhotoUrl } from '@/lib/api'
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>()
-  const project = id ? getProjectById(id) : undefined
+  const { data: apiProject } = useApi(id ? () => getProject(id) : null)
+  const staticProject = id ? getProjectById(id) : undefined
+  const project = apiProject ? mapProject(apiProject) : staticProject
+  const [lightbox, setLightbox] = useState<string | null>(null)
 
   if (!project) {
     return (
@@ -85,15 +92,55 @@ export default function ProjectDetail() {
           </div>
         </motion.div>
 
-        {/* Architecture placeholder */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="glass rounded-xl h-48 flex items-center justify-center mb-10 border-dashed"
-        >
-          <p className="text-brand-muted text-sm font-mono">[ architecture diagram — coming soon ]</p>
-        </motion.div>
+        {/* Screenshots gallery */}
+        {project.screenshots && project.screenshots.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-10"
+          >
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="w-1 h-6 bg-brand-accent rounded-full" /> Screenshots
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {project.screenshots.map((src, i) => (
+                <button
+                  key={i}
+                  onClick={() => setLightbox(getPhotoUrl(src))}
+                  className="aspect-video rounded-lg overflow-hidden border border-brand-border hover:border-brand-accent/50 transition-colors"
+                >
+                  <img
+                    src={getPhotoUrl(src)}
+                    alt={`Screenshot ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Lightbox */}
+        {lightbox && (
+          <div
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+            onClick={() => setLightbox(null)}
+          >
+            <button
+              className="absolute top-4 right-4 text-white/70 hover:text-white"
+              onClick={() => setLightbox(null)}
+            >
+              <X className="w-8 h-8" />
+            </button>
+            <img
+              src={lightbox}
+              alt="Screenshot"
+              className="max-w-full max-h-full rounded-lg object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
 
         {/* Description */}
         <motion.section

@@ -1,5 +1,5 @@
-import { type ChangeEvent, type FormEvent, useState } from 'react'
-import { CheckSquare, Pencil, Plus, Square, Trash2, X } from 'lucide-react'
+import { type ChangeEvent, type FormEvent, useRef, useState } from 'react'
+import { CheckSquare, ImagePlus, Pencil, Plus, Square, Trash2, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useApi } from '@/hooks/useApi'
 import {
@@ -7,7 +7,10 @@ import {
   adminCreateProject,
   adminDeleteProject,
   adminUpdateProject,
+  adminUploadScreenshot,
+  adminDeleteScreenshot,
   getProjects,
+  getPhotoUrl,
   mapProject,
 } from '@/lib/api'
 import type { Project } from '@/types'
@@ -100,6 +103,7 @@ function formToApiData(form: ProjectFormState): Omit<ApiProject, 'created_at'> {
     github_url: form.github_url || null,
     demo_url: form.demo_url || null,
     architecture_image: null,
+    screenshots: [],
   }
 }
 
@@ -116,6 +120,39 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
     modal.mode === 'edit' ? projectToForm(modal.project) : emptyForm()
   )
   const [saving, setSaving] = useState(false)
+  const [screenshots, setScreenshots] = useState<string[]>(
+    modal.mode === 'edit' ? (modal.project.screenshots ?? []) : []
+  )
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handleScreenshotUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || modal.mode !== 'edit') return
+    setUploading(true)
+    try {
+      const updated = await adminUploadScreenshot(modal.project.id, file)
+      setScreenshots(updated.screenshots ?? [])
+      toast.success('Screenshot uploaded')
+    } catch {
+      toast.error('Upload failed')
+    } finally {
+      setUploading(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  const handleDeleteScreenshot = async (url: string) => {
+    if (modal.mode !== 'edit') return
+    const filename = url.split('/').pop()!
+    try {
+      const updated = await adminDeleteScreenshot(modal.project.id, filename)
+      setScreenshots(updated.screenshots ?? [])
+      toast.success('Screenshot removed')
+    } catch {
+      toast.error('Delete failed')
+    }
+  }
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target
@@ -274,6 +311,43 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
               </div>
             </div>
           </section>
+
+          {/* Screenshots — edit mode only */}
+          {modal.mode === 'edit' && (
+            <section className="space-y-3">
+              <h3 className="text-sm font-semibold text-brand-accent uppercase tracking-wide">Screenshots</h3>
+              {screenshots.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {screenshots.map((src) => (
+                    <div key={src} className="relative group aspect-video rounded-lg overflow-hidden border border-brand-border">
+                      <img src={getPhotoUrl(src)} alt="" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteScreenshot(src)}
+                        className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500/90 text-white
+                                   flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleScreenshotUpload} />
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => fileRef.current?.click()}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-brand-border text-brand-muted
+                           hover:border-brand-accent hover:text-brand-accent transition-colors text-sm disabled:opacity-50"
+              >
+                {uploading
+                  ? <span className="w-4 h-4 border-2 border-brand-muted border-t-brand-accent rounded-full animate-spin" />
+                  : <ImagePlus className="w-4 h-4" />}
+                {uploading ? 'Uploading…' : 'Add Screenshot'}
+              </button>
+            </section>
+          )}
 
           <div className="flex items-center gap-3 pt-2">
             <button

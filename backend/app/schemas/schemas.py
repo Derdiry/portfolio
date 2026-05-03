@@ -73,6 +73,7 @@ class ProjectResponse(BaseModel):
     github_url: str | None
     demo_url: str | None
     architecture_image: str | None
+    screenshots: list[str] = []
     featured: bool
     priority: int
     created_at: datetime
@@ -95,6 +96,7 @@ class ProjectCreate(BaseModel):
     results: list[str] = []
     github_url: str | None = None
     demo_url: str | None = None
+    screenshots: list[str] = []
     featured: bool = False
     priority: int = 99
 
@@ -113,6 +115,7 @@ class ProjectUpdate(BaseModel):
     results: list[str] | None = None
     github_url: str | None = None
     demo_url: str | None = None
+    screenshots: list[str] | None = None
     featured: bool | None = None
     priority: int | None = None
 

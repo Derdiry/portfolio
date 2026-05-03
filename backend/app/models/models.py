@@ -59,6 +59,7 @@ class Project(Base):
     github_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     demo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     architecture_image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    screenshots: Mapped[list[str]] = mapped_column(JSON, default=list)
     featured: Mapped[bool] = mapped_column(Boolean, default=False)
     priority: Mapped[int] = mapped_column(Integer, default=99)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

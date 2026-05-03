@@ -165,6 +165,60 @@ async def delete_project(project_id: str, db: AsyncSession = Depends(get_db)):
     await db.commit()
 
 
+@router.post("/projects/{project_id}/screenshots", response_model=ProjectResponse)
+async def upload_project_screenshot(
+    project_id: str,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File must be an image")
+
+    content = await file.read()
+    image = Image.open(io.BytesIO(content)).convert("RGB")
+    image.thumbnail((1280, 960), Image.LANCZOS)
+
+    filename = f"screenshot_{project_id}_{uuid.uuid4().hex[:8]}.jpg"
+    os.makedirs("uploads", exist_ok=True)
+    image.save(os.path.join("uploads", filename), "JPEG", quality=85)
+
+    screenshots = list(project.screenshots or [])
+    screenshots.append(f"/uploads/{filename}")
+    project.screenshots = screenshots
+    await db.commit()
+    await db.refresh(project)
+    return project
+
+
+@router.delete("/projects/{project_id}/screenshots/{filename}", response_model=ProjectResponse)
+async def delete_project_screenshot(
+    project_id: str,
+    filename: str,
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    url = f"/uploads/{filename}"
+    screenshots = [s for s in (project.screenshots or []) if s != url]
+    project.screenshots = screenshots
+    await db.commit()
+
+    filepath = os.path.join("uploads", filename)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+
+    await db.refresh(project)
+    return project
+
+
 # ── Experience ───────────────────────────────────────────────────────────────
 
 @router.post("/experience", response_model=ExperienceResponse, status_code=201)
