@@ -4,8 +4,29 @@
 
 @layer base {
   :root {
-    --scrollbar-thumb: #1e2333;
-    --scrollbar-track: #080a14;
+    --brand-bg:           #080a14;
+    --brand-surface:      #0d1117;
+    --brand-border:       #1e2333;
+    --brand-accent:       #06b6d4;
+    --brand-accent-hover: #0891b2;
+    --brand-muted:        #94a3b8;
+    --brand-subtle:       #1a1f2e;
+    --color-text:         #ffffff;
+    --scrollbar-thumb:    #1e2333;
+    --scrollbar-track:    #080a14;
+  }
+
+  .light {
+    --brand-bg:           #f8fafc;
+    --brand-surface:      #ffffff;
+    --brand-border:       #e2e8f0;
+    --brand-accent:       #0891b2;
+    --brand-accent-hover: #0e7490;
+    --brand-muted:        #64748b;
+    --brand-subtle:       #f1f5f9;
+    --color-text:         #0f172a;
+    --scrollbar-thumb:    #cbd5e1;
+    --scrollbar-track:    #f8fafc;
   }
 
   * {
@@ -29,11 +50,9 @@
   }
 
   body {
-    @apply bg-brand-bg text-white font-sans antialiased;
-  }
-
-  .light body {
-    @apply bg-slate-50 text-slate-900;
+    background-color: var(--brand-bg);
+    color: var(--color-text);
+    @apply font-sans antialiased;
   }
 }
 
@@ -85,9 +104,23 @@
 
 /* Animated gradient background */
 .animated-gradient {
-  background: linear-gradient(135deg, #080a14 0%, #0a1628 30%, #080a14 60%, #0d1117 100%);
+  background: linear-gradient(135deg, var(--brand-bg) 0%, #0a1628 30%, var(--brand-bg) 60%, var(--brand-surface) 100%);
   background-size: 300% 300%;
   animation: gradient-x 12s ease infinite;
+}
+
+.light .animated-gradient {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 30%, #f8fafc 60%, #ffffff 100%);
+  background-size: 300% 300%;
+  animation: gradient-x 12s ease infinite;
+}
+
+/* In light mode, override hardcoded text-white to use themed text color */
+.light .text-white {
+  color: var(--color-text);
+}
+.light .text-slate-400 {
+  color: #475569;
 }
 
 /* Noise overlay for hero */

@@ -7,13 +7,13 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          bg:       '#080a14',
-          surface:  '#0d1117',
-          border:   '#1e2333',
-          accent:   '#06b6d4',
-          'accent-hover': '#0891b2',
-          muted:    '#94a3b8',
-          subtle:   '#1a1f2e',
+          bg:           'var(--brand-bg)',
+          surface:      'var(--brand-surface)',
+          border:       'var(--brand-border)',
+          accent:       'var(--brand-accent)',
+          'accent-hover': 'var(--brand-accent-hover)',
+          muted:        'var(--brand-muted)',
+          subtle:       'var(--brand-subtle)',
         },
       },
       fontFamily: {
