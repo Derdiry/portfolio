@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from PIL import Image
 from sqlalchemy import func, literal_column, select
+from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -190,6 +191,7 @@ async def upload_project_screenshot(
     screenshots = list(project.screenshots or [])
     screenshots.append(f"/uploads/{filename}")
     project.screenshots = screenshots
+    flag_modified(project, "screenshots")
     await db.commit()
     await db.refresh(project)
     return project
@@ -209,6 +211,7 @@ async def delete_project_screenshot(
     url = f"/uploads/{filename}"
     screenshots = [s for s in (project.screenshots or []) if s != url]
     project.screenshots = screenshots
+    flag_modified(project, "screenshots")
     await db.commit()
 
     filepath = os.path.join("uploads", filename)
