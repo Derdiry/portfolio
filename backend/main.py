@@ -2,6 +2,7 @@ import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from sqlalchemy import text
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -17,6 +18,10 @@ async def lifespan(app: FastAPI):
     # Auto-create tables on startup (idempotent)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Migrate: add screenshots column if it doesn't exist yet
+        await conn.execute(text(
+            "ALTER TABLE projects ADD COLUMN IF NOT EXISTS screenshots JSONB DEFAULT '[]'::jsonb"
+        ))
 
     # Seed data if tables are empty
     from app.services.seed import seed
