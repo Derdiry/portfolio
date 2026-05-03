@@ -8,17 +8,18 @@ export interface UseApiState<T> {
 }
 
 export function useApi<T>(
-  fetcher: () => Promise<T>,
+  fetcher: (() => Promise<T>) | null,
   deps: unknown[] = []
 ): UseApiState<T> {
   const [data, setData] = useState<T | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(fetcher !== null)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
   const refetch = useCallback(() => setTick((t) => t + 1), [])
 
   useEffect(() => {
+    if (!fetcher) return
     let cancelled = false
     setLoading(true)
     setError(null)

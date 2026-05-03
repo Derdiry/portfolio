@@ -320,7 +320,7 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
                 <div className="grid grid-cols-3 gap-2">
                   {screenshots.map((src) => (
                     <div key={src} className="relative group aspect-video rounded-lg overflow-hidden border border-brand-border">
-                      <img src={getPhotoUrl(src)} alt="" className="w-full h-full object-cover" />
+                      <img src={getPhotoUrl(src) ?? src} alt="" className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => handleDeleteScreenshot(src)}

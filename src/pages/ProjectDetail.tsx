@@ -107,11 +107,11 @@ export default function ProjectDetail() {
               {project.screenshots.map((src, i) => (
                 <button
                   key={i}
-                  onClick={() => setLightbox(getPhotoUrl(src))}
+                  onClick={() => setLightbox(getPhotoUrl(src) ?? src)}
                   className="aspect-video rounded-lg overflow-hidden border border-brand-border hover:border-brand-accent/50 transition-colors"
                 >
                   <img
-                    src={getPhotoUrl(src)}
+                    src={getPhotoUrl(src) ?? src}
                     alt={`Screenshot ${i + 1}`}
                     className="w-full h-full object-cover"
                   />
