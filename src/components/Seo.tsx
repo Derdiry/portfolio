@@ -8,7 +8,7 @@ interface SeoProps {
 }
 
 const SITE = 'Mohamed Alderdiry'
-const BASE_URL = 'https://mohamedalderdiry.vercel.app'
+const BASE_URL = 'https://mywebsite-tawny-tau.vercel.app'
 const OG_IMAGE = `${BASE_URL}/og-image.jpg`
 
 export default function Seo({ title, description, path = '', type = 'website' }: SeoProps) {
