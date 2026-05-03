@@ -64,7 +64,10 @@
 
   /* Glass card */
   .glass {
-    @apply bg-brand-surface/60 backdrop-blur-sm border border-brand-border;
+    background-color: color-mix(in srgb, var(--brand-surface) 60%, transparent);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid var(--brand-border);
   }
 
   /* Section padding */
@@ -83,15 +86,22 @@
   .tech-badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono
            bg-brand-subtle border border-brand-border text-brand-muted
-           transition-colors hover:border-brand-accent/50 hover:text-brand-accent;
+           transition-colors hover:text-brand-accent;
+    border-color: var(--brand-border);
+  }
+  .tech-badge:hover {
+    border-color: color-mix(in srgb, var(--brand-accent) 50%, transparent);
   }
 
   /* Glow button */
   .btn-primary {
     @apply inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold
            bg-brand-accent text-brand-bg transition-all duration-200
-           hover:bg-brand-accent-hover hover:scale-[1.02] active:scale-[0.98]
-           shadow-lg shadow-brand-accent/20 hover:shadow-brand-accent/40;
+           hover:bg-brand-accent-hover hover:scale-[1.02] active:scale-[0.98];
+    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--brand-accent) 20%, transparent);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--brand-accent) 40%, transparent);
   }
 
   .btn-secondary {
