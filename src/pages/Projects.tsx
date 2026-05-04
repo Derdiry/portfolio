@@ -2,20 +2,28 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Github, ExternalLink, ArrowRight, Search } from 'lucide-react'
-import { PROJECTS } from '@/data/projects'
+import { PROJECTS as FALLBACK_PROJECTS } from '@/data/projects'
 import { CATEGORY_META, STATUS_META, ALL_CATEGORIES } from '@/components/projects/meta'
 import type { ProjectCategory, ProjectStatus } from '@/types'
 import Seo from '@/components/Seo'
+import { useApi } from '@/hooks/useApi'
+import { getProjects, mapProject, getPhotoUrl } from '@/lib/api'
 
 type StatusFilter = ProjectStatus | 'all'
 
 export default function Projects() {
   const [category, setCategory] = useState<ProjectCategory | 'all'>('all')
-  const [status, setStatus] = useState<StatusFilter>('all')
-  const [search, setSearch] = useState('')
+  const [status, setStatus]     = useState<StatusFilter>('all')
+  const [search, setSearch]     = useState('')
+
+  const { data: apiProjects } = useApi(getProjects)
+  const allProjects = useMemo(
+    () => apiProjects?.map(mapProject) ?? FALLBACK_PROJECTS,
+    [apiProjects]
+  )
 
   const filtered = useMemo(() => {
-    return PROJECTS.filter((p) => {
+    return allProjects.filter((p) => {
       const matchCat    = category === 'all' || p.category === category
       const matchStatus = status   === 'all' || p.status   === status
       const matchSearch = search.trim() === '' ||
@@ -24,12 +32,13 @@ export default function Projects() {
         p.techStack.some((t) => t.toLowerCase().includes(search.toLowerCase()))
       return matchCat && matchStatus && matchSearch
     }).sort((a, b) => a.priority - b.priority)
-  }, [category, status, search])
+  }, [category, status, search, allProjects])
 
   return (
     <div className="pt-24 pb-20">
       <Seo title="Projects" description="Production ML systems by Mohamed Alderdiry — gold price forecasting, RAG chatbots, MLOps platforms, and industrial AI decision support." path="/projects" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -38,7 +47,7 @@ export default function Projects() {
           className="mb-12"
         >
           <p className="text-brand-accent font-mono text-sm mb-2">// all work</p>
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Projects</h1>
+          <h1 className="text-4xl sm:text-5xl font-bold mb-4">Projects</h1>
           <p className="text-brand-muted max-w-xl">
             Production ML systems, MLOps infrastructure, and applied AI research.
           </p>
@@ -60,7 +69,7 @@ export default function Projects() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-brand-subtle border border-brand-border
-                         text-white placeholder:text-brand-muted text-sm
+                         text-[var(--color-text)] placeholder:text-brand-muted text-sm
                          focus:outline-none focus:border-brand-accent transition-colors"
             />
           </div>
@@ -73,8 +82,8 @@ export default function Projects() {
                 onClick={() => setCategory(value)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   category === value
-                    ? 'bg-brand-accent text-brand-bg'
-                    : 'bg-brand-subtle border border-brand-border text-brand-muted hover:text-white hover:border-brand-accent/50'
+                    ? 'bg-brand-accent text-brand-bg shadow-lg shadow-brand-accent/20'
+                    : 'bg-brand-subtle border border-brand-border text-brand-muted hover:text-[var(--color-text)] hover:border-brand-accent/50'
                 }`}
               >
                 {label}
@@ -86,16 +95,18 @@ export default function Projects() {
           <div className="flex flex-wrap gap-2">
             {(['all', 'complete', 'in_progress', 'papers_in_prep'] as StatusFilter[]).map((s) => {
               const label = s === 'all' ? 'All Status' : STATUS_META[s as ProjectStatus].label
+              const dot   = s !== 'all' ? STATUS_META[s as ProjectStatus].dot : null
               return (
                 <button
                   key={s}
                   onClick={() => setStatus(s)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
                     status === s
-                      ? 'bg-brand-accent/20 border border-brand-accent text-brand-accent'
-                      : 'bg-brand-subtle border border-brand-border text-brand-muted hover:text-white'
+                      ? 'bg-brand-accent/15 border border-brand-accent text-brand-accent'
+                      : 'bg-brand-subtle border border-brand-border text-brand-muted hover:text-[var(--color-text)]'
                   }`}
                 >
+                  {dot && <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />}
                   {label}
                 </button>
               )
@@ -113,75 +124,92 @@ export default function Projects() {
           {filtered.map((project, i) => {
             const cat = CATEGORY_META[project.category]
             const st  = STATUS_META[project.status]
+            const thumb = project.screenshots?.[0]
+            const thumbUrl = thumb ? (getPhotoUrl(thumb) ?? thumb) : null
+
             return (
               <motion.article
                 key={project.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45, delay: i * 0.06 }}
-                className="glass rounded-xl p-6 flex flex-col hover:border-brand-accent/40
-                           transition-all duration-300 hover:shadow-lg hover:shadow-brand-accent/5
-                           hover:-translate-y-0.5 group"
+                className="glass rounded-xl overflow-hidden flex flex-col
+                           hover:border-brand-accent/40 transition-all duration-300
+                           hover:shadow-xl hover:shadow-brand-accent/5 hover:-translate-y-1 group"
               >
-                {/* Category + Status */}
-                <div className="flex flex-wrap items-center gap-2 mb-3">
-                  <span className={`tech-badge ${cat.color}`}>{cat.label}</span>
-                  <span className="flex items-center gap-1.5">
-                    <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
-                    <span className={`text-xs font-medium ${st.color.split(' ')[0]}`}>{st.label}</span>
-                  </span>
-                </div>
+                {/* Thumbnail or category bar */}
+                {thumbUrl ? (
+                  <div className="h-44 overflow-hidden flex-shrink-0">
+                    <img
+                      src={thumbUrl}
+                      alt={project.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                ) : (
+                  <div className={`h-1 flex-shrink-0 ${cat.bar}`} />
+                )}
 
-                {/* Title */}
-                <h2 className="text-xl font-bold text-white mb-1 group-hover:text-brand-accent transition-colors">
-                  {project.title}
-                </h2>
-                <p className="text-brand-muted text-xs mb-3">{project.subtitle}</p>
-                <p className="text-slate-400 text-sm leading-relaxed flex-1 line-clamp-3">
-                  {project.shortDescription}
-                </p>
+                <div className="p-6 flex flex-col flex-1">
+                  {/* Category + Status */}
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <span className={`tech-badge ${cat.color}`}>{cat.label}</span>
+                    <span className="flex items-center gap-1.5">
+                      <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
+                      <span className={`text-xs font-medium ${st.color.split(' ')[0]}`}>{st.label}</span>
+                    </span>
+                  </div>
 
-                {/* Tech stack */}
-                <div className="flex flex-wrap gap-1.5 mt-4 mb-5">
-                  {project.techStack.slice(0, 5).map((tech) => (
-                    <span key={tech} className="tech-badge">{tech}</span>
-                  ))}
-                  {project.techStack.length > 5 && (
-                    <span className="tech-badge">+{project.techStack.length - 5}</span>
-                  )}
-                </div>
+                  {/* Title */}
+                  <h2 className="text-xl font-bold mb-1 group-hover:text-brand-accent transition-colors">
+                    {project.title}
+                  </h2>
+                  <p className="text-brand-muted text-xs mb-3">{project.subtitle}</p>
+                  <p className="text-slate-400 text-sm leading-relaxed flex-1 line-clamp-3">
+                    {project.shortDescription}
+                  </p>
 
-                {/* Actions */}
-                <div className="flex items-center gap-3 pt-4 border-t border-brand-border">
-                  <Link
-                    to={`/projects/${project.id}`}
-                    className="flex items-center gap-1.5 text-sm font-medium text-brand-accent
-                               hover:underline transition-colors"
-                  >
-                    View Details <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                  {project.githubUrl && (
-                    <a
-                      href={project.githubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="GitHub repo"
-                      className="ml-auto text-brand-muted hover:text-white transition-colors"
+                  {/* Tech stack */}
+                  <div className="flex flex-wrap gap-1.5 mt-4 mb-5">
+                    {project.techStack.slice(0, 5).map((tech) => (
+                      <span key={tech} className="tech-badge">{tech}</span>
+                    ))}
+                    {project.techStack.length > 5 && (
+                      <span className="tech-badge">+{project.techStack.length - 5}</span>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-3 pt-4 border-t border-brand-border">
+                    <Link
+                      to={`/projects/${project.id}`}
+                      className="flex items-center gap-1.5 text-sm font-medium text-brand-accent hover:underline"
                     >
-                      <Github className="w-4 h-4" />
-                    </a>
-                  )}
-                  {project.demoUrl && project.demoUrl !== '#' && (
-                    <a
-                      href={project.demoUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Live demo"
-                      className={project.githubUrl ? 'text-brand-muted hover:text-brand-accent transition-colors' : 'ml-auto text-brand-muted hover:text-brand-accent transition-colors'}
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  )}
+                      View Details <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                    {project.githubUrl && (
+                      <a
+                        href={project.githubUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="GitHub repo"
+                        className="ml-auto text-brand-muted hover:text-[var(--color-text)] transition-colors"
+                      >
+                        <Github className="w-4 h-4" />
+                      </a>
+                    )}
+                    {project.demoUrl && project.demoUrl !== '#' && (
+                      <a
+                        href={project.demoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Live demo"
+                        className={`text-brand-muted hover:text-brand-accent transition-colors ${project.githubUrl ? '' : 'ml-auto'}`}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
                 </div>
               </motion.article>
             )

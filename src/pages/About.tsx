@@ -2,14 +2,14 @@ import { motion } from 'framer-motion'
 import { Award, Briefcase, GraduationCap, MapPin, Mail, Github, Linkedin } from 'lucide-react'
 import { PROFILE, EXPERIENCE, EDUCATION, SKILLS } from '@/data/profile'
 import { useApi } from '@/hooks/useApi'
-import { getProfile, getExperience, getEducation, getSkills, mapExperience, mapEducation } from '@/lib/api'
+import { getProfile, getExperience, getEducation, getSkills, mapExperience, mapEducation, getPhotoUrl } from '@/lib/api'
 import Seo from '@/components/Seo'
 
 const fadeUp = (delay = 0) => ({
-  initial:   { opacity: 0, y: 20 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport:  { once: true },
-  transition: { duration: 0.5, delay },
+  initial:      { opacity: 0, y: 20 },
+  whileInView:  { opacity: 1, y: 0 },
+  viewport:     { once: true },
+  transition:   { duration: 0.5, delay },
 })
 
 export default function About() {
@@ -23,46 +23,95 @@ export default function About() {
   const education  = apiEducation  ? apiEducation.map(mapEducation)   : EDUCATION
   const skills     = apiSkills     ?? SKILLS
 
+  const photoUrl = apiProfile?.photo_url ? getPhotoUrl(apiProfile.photo_url) : null
+
   return (
-    <div className="pt-24 pb-20">
+    <div className="pt-20 pb-20">
       <Seo title="About" description="ML engineer with a Master's in Computer Science from Donghua University. Co-inventor on Australian Patent #2025203718." path="/about" type="profile" />
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Header */}
-        <motion.div {...fadeUp()} className="mb-14">
-          <p className="text-brand-accent font-mono text-sm mb-2">// about me</p>
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-6">About</h1>
+      {/* ── Twitter-style profile header ────────────────────────── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-14"
+      >
+        {/* Banner */}
+        <div className="relative h-44 sm:h-52 rounded-2xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/60 via-violet-900/40 to-blue-900/50" />
+          <div className="absolute inset-0 dot-grid opacity-40" />
+          <div className="pointer-events-none absolute -top-10 -left-10 w-64 h-64 rounded-full bg-cyan-500/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-10 -right-10 w-64 h-64 rounded-full bg-violet-600/20 blur-3xl" />
+        </div>
 
-          <div className="flex flex-wrap items-center gap-4 mb-8 text-brand-muted text-sm">
+        {/* Avatar + info row */}
+        <div className="px-2 sm:px-4">
+          {/* Avatar — overlaps banner */}
+          <div className="relative -mt-14 mb-4 inline-block">
+            {photoUrl ? (
+              <img
+                src={photoUrl}
+                alt={profile.name}
+                className="w-28 h-28 rounded-full border-4 object-cover shadow-xl"
+                style={{ borderColor: 'var(--brand-bg)' }}
+              />
+            ) : (
+              <div
+                className="w-28 h-28 rounded-full border-4 bg-brand-subtle shadow-xl
+                            flex items-center justify-center"
+                style={{ borderColor: 'var(--brand-bg)' }}
+              >
+                <span className="text-3xl font-bold gradient-text font-mono">MA</span>
+              </div>
+            )}
+          </div>
+
+          {/* Name + title */}
+          <div className="mb-4">
+            <h1 className="text-2xl sm:text-3xl font-bold">{profile.name}</h1>
+            <p className="text-brand-muted mt-0.5">{profile.title}</p>
+          </div>
+
+          {/* Meta row */}
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-brand-muted">
             <span className="flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-brand-accent" />
+              <MapPin className="w-3.5 h-3.5 text-brand-accent" />
               {profile.location}
             </span>
-            <a href={`mailto:${profile.email}`} className="flex items-center gap-1.5 hover:text-brand-accent transition-colors">
-              <Mail className="w-4 h-4" />
+            <a href={`mailto:${profile.email}`}
+               className="flex items-center gap-1.5 hover:text-brand-accent transition-colors">
+              <Mail className="w-3.5 h-3.5" />
               {profile.email}
             </a>
-            <a href={`https://${profile.linkedin}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-brand-accent transition-colors">
-              <Linkedin className="w-4 h-4" />
+            <a href={`https://${profile.linkedin}`} target="_blank" rel="noopener noreferrer"
+               className="flex items-center gap-1.5 hover:text-brand-accent transition-colors">
+              <Linkedin className="w-3.5 h-3.5" />
               LinkedIn
             </a>
-            <a href={`https://${profile.github}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-brand-accent transition-colors">
-              <Github className="w-4 h-4" />
+            <a href={`https://${profile.github}`} target="_blank" rel="noopener noreferrer"
+               className="flex items-center gap-1.5 hover:text-brand-accent transition-colors">
+              <Github className="w-3.5 h-3.5" />
               GitHub
             </a>
           </div>
+        </div>
+      </motion.div>
 
-          {/* Bio */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Bio */}
+        <motion.section {...fadeUp()} className="mb-14">
+          <p className="text-brand-accent font-mono text-sm mb-3">// about me</p>
           <div className="space-y-4">
             {profile.bio.split('\n\n').filter(Boolean).map((para, i) => (
               <p key={i} className="text-slate-400 leading-relaxed">{para}</p>
             ))}
           </div>
-        </motion.div>
+        </motion.section>
 
         {/* Patent */}
         <motion.section {...fadeUp(0.05)} className="mb-14">
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
             <Award className="w-6 h-6 text-amber-400" /> Patent
           </h2>
           <div className="glass rounded-xl p-6 border-l-4 border-amber-400/50">
@@ -73,14 +122,14 @@ export default function About() {
               </span>
               <span className="text-brand-muted text-sm">{profile.patent.role}</span>
             </div>
-            <h3 className="text-white font-semibold text-lg mb-1">{profile.patent.number}</h3>
+            <h3 className="font-semibold text-lg mb-1">{profile.patent.number}</h3>
             <p className="text-brand-muted">{profile.patent.title}</p>
           </div>
         </motion.section>
 
         {/* Experience */}
         <motion.section {...fadeUp(0.1)} className="mb-14">
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
             <Briefcase className="w-6 h-6 text-brand-accent" /> Experience
           </h2>
           <div className="relative">
@@ -99,7 +148,7 @@ export default function About() {
                   <div className="glass rounded-xl p-5">
                     <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                       <div>
-                        <h3 className="text-white font-semibold">{exp.role}</h3>
+                        <h3 className="font-semibold">{exp.role}</h3>
                         <p className="text-brand-accent text-sm">{exp.company}</p>
                       </div>
                       <div className="text-right">
@@ -128,7 +177,7 @@ export default function About() {
 
         {/* Education */}
         <motion.section {...fadeUp(0.15)} className="mb-14">
-          <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
             <GraduationCap className="w-6 h-6 text-brand-accent" /> Education
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -137,14 +186,12 @@ export default function About() {
                 <p className="text-brand-muted text-xs font-mono mb-1">
                   {edu.startYear} — {edu.endYear}
                 </p>
-                <h3 className="text-white font-semibold">{edu.degree} in {edu.field}</h3>
+                <h3 className="font-semibold">{edu.degree} in {edu.field}</h3>
                 <p className="text-brand-accent text-sm">{edu.school}</p>
                 <p className="text-brand-muted text-xs mt-1 flex items-center gap-1">
                   <MapPin className="w-3 h-3" /> {edu.location}
                 </p>
-                {edu.note && (
-                  <p className="text-slate-500 text-xs mt-2 italic">{edu.note}</p>
-                )}
+                {edu.note && <p className="text-slate-500 text-xs mt-2 italic">{edu.note}</p>}
               </div>
             ))}
           </div>
@@ -152,7 +199,7 @@ export default function About() {
 
         {/* Skills */}
         <motion.section {...fadeUp(0.2)}>
-          <h2 className="text-2xl font-bold text-white mb-6">Skills</h2>
+          <h2 className="text-2xl font-bold mb-6">Skills</h2>
           <div className="grid gap-6">
             {skills.map((group, i) => (
               <motion.div
@@ -169,7 +216,7 @@ export default function About() {
                       key={skill}
                       className="px-3 py-1.5 rounded-lg text-sm
                                  bg-brand-subtle border border-brand-border text-brand-muted
-                                 hover:border-brand-accent/50 hover:text-white transition-all duration-200"
+                                 hover:border-brand-accent/50 hover:text-brand-accent transition-all duration-200"
                     >
                       {skill}
                     </span>

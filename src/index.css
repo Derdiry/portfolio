@@ -4,50 +4,44 @@
 
 @layer base {
   :root {
-    --brand-bg:           #080a14;
+    --brand-bg:           #070b14;
     --brand-surface:      #0d1117;
-    --brand-border:       #1e2333;
+    --brand-border:       #1a2035;
     --brand-accent:       #06b6d4;
     --brand-accent-hover: #0891b2;
+    --brand-purple:       #8b5cf6;
+    --brand-purple-hover: #7c3aed;
     --brand-muted:        #94a3b8;
-    --brand-subtle:       #1a1f2e;
-    --color-text:         #ffffff;
+    --brand-subtle:       #111827;
+    --color-text:         #f1f5f9;
     --scrollbar-thumb:    #1e2333;
-    --scrollbar-track:    #080a14;
+    --scrollbar-track:    #070b14;
   }
 
   .light {
-    --brand-bg:           #f8fafc;
+    --brand-bg:           #f0f4f8;
     --brand-surface:      #ffffff;
-    --brand-border:       #e2e8f0;
+    --brand-border:       #dde3ef;
     --brand-accent:       #0891b2;
     --brand-accent-hover: #0e7490;
+    --brand-purple:       #7c3aed;
+    --brand-purple-hover: #6d28d9;
     --brand-muted:        #64748b;
-    --brand-subtle:       #f1f5f9;
+    --brand-subtle:       #e8eef5;
     --color-text:         #0f172a;
     --scrollbar-thumb:    #cbd5e1;
-    --scrollbar-track:    #f8fafc;
+    --scrollbar-track:    #f0f4f8;
   }
 
   * {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
+  *::-webkit-scrollbar        { width: 6px; }
+  *::-webkit-scrollbar-track  { background: var(--scrollbar-track); }
+  *::-webkit-scrollbar-thumb  { background: var(--scrollbar-thumb); border-radius: 3px; }
 
-  *::-webkit-scrollbar {
-    width: 6px;
-  }
-  *::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-  }
-  *::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
-    border-radius: 3px;
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
+  html { scroll-behavior: smooth; }
 
   body {
     background-color: var(--brand-bg);
@@ -57,16 +51,16 @@
 }
 
 @layer components {
-  /* Gradient text */
+  /* Gradient text — cyan → blue → violet */
   .gradient-text {
-    @apply bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-cyan-400 via-blue-400 to-violet-500 bg-clip-text text-transparent;
   }
 
   /* Glass card */
   .glass {
-    background-color: color-mix(in srgb, var(--brand-surface) 60%, transparent);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background-color: color-mix(in srgb, var(--brand-surface) 70%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     border: 1px solid var(--brand-border);
   }
 
@@ -93,47 +87,64 @@
     border-color: color-mix(in srgb, var(--brand-accent) 50%, transparent);
   }
 
-  /* Glow button */
+  /* Primary button */
   .btn-primary {
     @apply inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold
            bg-brand-accent text-brand-bg transition-all duration-200
            hover:bg-brand-accent-hover hover:scale-[1.02] active:scale-[0.98];
-    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--brand-accent) 20%, transparent);
+    box-shadow: 0 8px 20px -4px color-mix(in srgb, var(--brand-accent) 30%, transparent);
   }
   .btn-primary:hover {
-    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--brand-accent) 40%, transparent);
+    box-shadow: 0 8px 28px -4px color-mix(in srgb, var(--brand-accent) 50%, transparent);
   }
 
+  /* Secondary button */
   .btn-secondary {
     @apply inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold
-           border border-brand-border text-white transition-all duration-200
+           border border-brand-border transition-all duration-200
            hover:border-brand-accent hover:text-brand-accent hover:scale-[1.02]
            active:scale-[0.98];
+    color: var(--color-text);
   }
 }
 
-/* Animated gradient background */
+/* ── Backgrounds ──────────────────────────────────────────── */
+
 .animated-gradient {
-  background: linear-gradient(135deg, var(--brand-bg) 0%, #0a1628 30%, var(--brand-bg) 60%, var(--brand-surface) 100%);
+  background: linear-gradient(
+    135deg,
+    #070b14 0%,
+    #090d1e 20%,
+    #080b18 40%,
+    #0a0d1c 60%,
+    #090c1a 80%,
+    #070b14 100%
+  );
   background-size: 300% 300%;
-  animation: gradient-x 12s ease infinite;
+  animation: gradient-x 14s ease infinite;
 }
 
 .light .animated-gradient {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 30%, #f8fafc 60%, #ffffff 100%);
+  background: linear-gradient(135deg, #eef2f8 0%, #e6eef8 30%, #f0f4f8 60%, #f8faff 100%);
   background-size: 300% 300%;
-  animation: gradient-x 12s ease infinite;
+  animation: gradient-x 14s ease infinite;
 }
 
-/* In light mode, override hardcoded text-white to use themed text color */
-.light .text-white {
-  color: var(--color-text);
-}
-.light .text-slate-400 {
-  color: #475569;
+/* Dot grid overlay — use on a position:absolute child */
+.dot-grid {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--brand-accent) 20%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 28px 28px;
 }
 
-/* Noise overlay for hero */
+/* Light theme overrides */
+.light .text-white   { color: var(--color-text); }
+.light .text-slate-400 { color: #475569; }
+
+/* Noise overlay */
 .noise::after {
   content: '';
   position: absolute;
@@ -143,16 +154,13 @@
   opacity: 0.4;
 }
 
+/* Profile photo decorative rings */
+.profile-ring         { animation: spin-ring 28s linear infinite; }
+.profile-ring-reverse { animation: spin-ring 20s linear infinite reverse; }
+
 /* Scroll fade-in utility */
-.fade-in-up {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
-.fade-in-up.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+.fade-in-up { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.fade-in-up.visible { opacity: 1; transform: translateY(0); }
 
 /* Stagger children */
 .stagger > *:nth-child(1) { transition-delay: 0ms; }
@@ -161,3 +169,13 @@
 .stagger > *:nth-child(4) { transition-delay: 240ms; }
 .stagger > *:nth-child(5) { transition-delay: 320ms; }
 .stagger > *:nth-child(6) { transition-delay: 400ms; }
+
+@keyframes gradient-x {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+@keyframes spin-ring {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

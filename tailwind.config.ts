@@ -7,13 +7,15 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          bg:           'var(--brand-bg)',
-          surface:      'var(--brand-surface)',
-          border:       'var(--brand-border)',
-          accent:       'var(--brand-accent)',
+          bg:             'var(--brand-bg)',
+          surface:        'var(--brand-surface)',
+          border:         'var(--brand-border)',
+          accent:         'var(--brand-accent)',
           'accent-hover': 'var(--brand-accent-hover)',
-          muted:        'var(--brand-muted)',
-          subtle:       'var(--brand-subtle)',
+          muted:          'var(--brand-muted)',
+          subtle:         'var(--brand-subtle)',
+          purple:         'var(--brand-purple)',
+          'purple-hover': 'var(--brand-purple-hover)',
         },
       },
       fontFamily: {
@@ -21,10 +23,11 @@ const config: Config = {
         mono: ['"Space Mono"', 'monospace'],
       },
       animation: {
-        'gradient-x': 'gradient-x 8s ease infinite',
+        'gradient-x': 'gradient-x 14s ease infinite',
         'fade-up':    'fade-up 0.6s ease forwards',
         'blink':      'blink 1s step-end infinite',
         'glow-pulse': 'glow-pulse 3s ease-in-out infinite',
+        'spin-slow':  'spin-ring 28s linear infinite',
       },
       keyframes: {
         'gradient-x': {
@@ -42,6 +45,10 @@ const config: Config = {
         'glow-pulse': {
           '0%, 100%': { boxShadow: '0 0 20px rgba(6,182,212,0.3)' },
           '50%':      { boxShadow: '0 0 40px rgba(6,182,212,0.6)' },
+        },
+        'spin-ring': {
+          from: { transform: 'rotate(0deg)' },
+          to:   { transform: 'rotate(360deg)' },
         },
       },
       backgroundSize: {
