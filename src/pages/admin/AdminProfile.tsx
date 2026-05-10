@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useRef, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Download, FileText, Upload, User } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
 import { toast } from 'react-hot-toast'
@@ -114,9 +114,11 @@ export default function AdminProfile() {
   // Photo state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const photoInputRef  = useRef<HTMLInputElement>(null)
 
   // Resume state
   const [uploadingResume, setUploadingResume] = useState(false)
+  const resumeInputRef = useRef<HTMLInputElement>(null)
 
   // Sync form when profile loads (only on first load)
   if (profile && !form) {
@@ -156,8 +158,10 @@ export default function AdminProfile() {
     }
   }
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  // Native listener — bypasses React event delegation which extensions can block
+  const onPhotoChange = useCallback(async () => {
+    const input = photoInputRef.current
+    const file  = input?.files?.[0]
     if (!file) return
     setPreviewUrl(URL.createObjectURL(file))
     setUploading(true)
@@ -170,12 +174,13 @@ export default function AdminProfile() {
       toast.error(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setUploading(false)
-      e.target.value = ''
+      if (input) input.value = ''
     }
-  }
+  }, [refetch])
 
-  const handleResumeChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const onResumeChange = useCallback(async () => {
+    const input = resumeInputRef.current
+    const file  = input?.files?.[0]
     if (!file) return
     setUploadingResume(true)
     try {
@@ -186,9 +191,26 @@ export default function AdminProfile() {
       toast.error(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setUploadingResume(false)
-      e.target.value = ''
+      if (input) input.value = ''
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    const el = photoInputRef.current
+    if (!el) return
+    el.addEventListener('change', onPhotoChange)
+    return () => el.removeEventListener('change', onPhotoChange)
+  }, [onPhotoChange])
+
+  useEffect(() => {
+    const el = resumeInputRef.current
+    if (!el) return
+    el.addEventListener('change', onResumeChange)
+    return () => el.removeEventListener('change', onResumeChange)
+  }, [onResumeChange])
+
+  // Kept for type-compatibility on the overlay inputs (no-op — native listener handles it)
+  const noop = (_e: ChangeEvent<HTMLInputElement>) => {}
 
   if (loading) {
     return (
@@ -367,9 +389,10 @@ export default function AdminProfile() {
                 {uploading ? 'Uploading…' : 'Upload Photo'}
               </div>
               <input
+                ref={photoInputRef}
                 type="file"
                 accept="image/*"
-                onChange={handleFileChange}
+                onChange={noop}
                 disabled={uploading}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
               />
@@ -415,9 +438,10 @@ export default function AdminProfile() {
                 {uploadingResume ? 'Uploading…' : 'Upload PDF'}
               </div>
               <input
+                ref={resumeInputRef}
                 type="file"
                 accept=".pdf"
-                onChange={handleResumeChange}
+                onChange={noop}
                 disabled={uploadingResume}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
               />
