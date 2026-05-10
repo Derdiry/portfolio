@@ -1,7 +1,9 @@
+import os
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -115,6 +117,16 @@ async def contact(body: ContactRequest, db: AsyncSession = Depends(get_db)):
         print(f"Email send failed: {exc}")
 
     return ContactResponse(success=True, message="Message received. I'll get back to you soon.")
+
+
+# ── Uploads (served via API so CORSMiddleware adds headers) ──────────────────
+
+@router.get("/uploads/{filename}")
+async def serve_upload(filename: str):
+    path = os.path.join("uploads", filename)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(path)
 
 
 # ── Analytics ────────────────────────────────────────────────────────────────
