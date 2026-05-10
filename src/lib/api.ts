@@ -315,14 +315,13 @@ export const adminUpdateSkills = (groups: ApiSkillGroup[]) =>
 export const getPhotoUrl = (photo_url: string | null): string | null => {
   if (!photo_url) return null
   if (photo_url.startsWith('http')) return photo_url
-  // Route /uploads/* through /api/uploads/* so FastAPI CORSMiddleware adds headers
-  const normalized = photo_url.replace(/^\/uploads\//, '/api/uploads/')
-  return `${BASE}${normalized}`
+  // Return same-origin /uploads/* — Vercel proxies to Railway, bypassing Adblock
+  return photo_url.startsWith('/uploads/') ? photo_url : `/uploads/${photo_url.split('/').pop()}`
 }
 
 // ── Resume ───────────────────────────────────────────────────────────────────
 
-export const getResumeUrl = () => `${BASE}/api/uploads/resume.pdf`
+export const getResumeUrl = () => '/uploads/resume.pdf'
 
 export const adminUploadResume = async (file: File): Promise<{ resume_url: string }> => {
   const token = localStorage.getItem('admin_token')

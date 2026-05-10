@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/uploads/:file", "destination": "https://portfolio-production-223d.up.railway.app/api/uploads/:file" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "headers": [
