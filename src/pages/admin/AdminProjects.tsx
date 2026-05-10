@@ -155,6 +155,7 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
     setScreenshots(latest)
     setQueue([])
     setUploading(false)
+    localStorage.setItem('portfolio_data_updated', Date.now().toString())
     toast.success('Screenshots uploaded')
   }, [queue, modal, screenshots])
 
@@ -164,6 +165,7 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
     try {
       const updated = await adminDeleteScreenshot(modal.project.id, filename)
       setScreenshots(updated.screenshots ?? [])
+      localStorage.setItem('portfolio_data_updated', Date.now().toString())
       toast.success('Screenshot removed')
     } catch {
       toast.error('Delete failed')

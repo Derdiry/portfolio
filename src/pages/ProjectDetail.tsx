@@ -12,7 +12,7 @@ import { getPhotoUrl } from '@/lib/api'
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>()
-  const { data: apiProject } = useApi(id ? () => getProject(id) : null)
+  const { data: apiProject } = useApi(id ? () => getProject(id) : null, [id])
   const staticProject = id ? getProjectById(id) : undefined
   const project = apiProject ? mapProject(apiProject) : staticProject
   const [lightbox, setLightbox] = useState<string | null>(null)
