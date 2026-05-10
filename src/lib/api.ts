@@ -204,14 +204,16 @@ export function mapProject(p: ApiProject): Project {
   }
 }
 
-export const adminUploadScreenshot = (projectId: string, file: File) => {
+export const adminUploadScreenshot = async (projectId: string, file: File): Promise<ApiProject> => {
   const form = new FormData()
   form.append('file', file)
-  return request<ApiProject>(`/api/admin/projects/${projectId}/screenshots`, {
+  const res = await fetch(`${BASE}/api/admin/projects/${projectId}/screenshots`, {
     method: 'POST',
     headers: authHeader(),
     body: form,
   })
+  if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
+  return res.json()
 }
 
 export const adminDeleteScreenshot = (projectId: string, filename: string) =>
