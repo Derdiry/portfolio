@@ -114,6 +114,7 @@ export default function AdminProfile() {
   // Photo state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
 
   // Resume state
@@ -158,27 +159,53 @@ export default function AdminProfile() {
     }
   }
 
-  // Native listeners on off-screen inputs (fallback path)
+  // Core upload logic — called from drop, paste, or input change
+  const processPhoto = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return }
+    setPreviewUrl(URL.createObjectURL(file))
+    setUploading(true)
+    try {
+      await adminUploadPhoto(file)
+      toast.success('Photo uploaded')
+      refetch()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed')
+    } finally { setUploading(false) }
+  }, [refetch])
+
+  // Drag-and-drop — ABP cannot block native drop events on a div
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file && !uploading) processPhoto(file)
+  }, [uploading, processPhoto])
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = useCallback(() => setIsDragging(false), [])
+
+  // Clipboard paste — copy an image file then Ctrl+V anywhere on the page
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent) => {
+      const file = Array.from(e.clipboardData?.files ?? []).find(f => f.type.startsWith('image/'))
+      if (file && !uploading) processPhoto(file)
+    }
+    document.addEventListener('paste', onPaste)
+    return () => document.removeEventListener('paste', onPaste)
+  }, [uploading, processPhoto])
+
+  // Off-screen input fallback (last resort — may be blocked by ABP)
   useEffect(() => {
     const el = photoInputRef.current
     if (!el) return
-    const handler = async () => {
-      const file = el.files?.[0]
-      if (!file) return
-      el.value = ''
-      setPreviewUrl(URL.createObjectURL(file))
-      setUploading(true)
-      try {
-        await adminUploadPhoto(file)
-        toast.success('Photo uploaded')
-        refetch()
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Upload failed')
-      } finally { setUploading(false) }
-    }
+    const handler = () => { const f = el.files?.[0]; if (f) { el.value = ''; processPhoto(f) } }
     el.addEventListener('change', handler)
     return () => el.removeEventListener('change', handler)
-  }, [refetch])
+  }, [processPhoto])
 
   useEffect(() => {
     const el = resumeInputRef.current
@@ -199,32 +226,6 @@ export default function AdminProfile() {
     return () => el.removeEventListener('change', handler)
   }, [])
 
-  const handlePhotoUpload = useCallback(async () => {
-    if (uploading) return
-    // Try modern API first — no DOM element, extensions can't intercept
-    if ('showOpenFilePicker' in window) {
-      try {
-        const [handle] = await (window as unknown as { showOpenFilePicker: (o: object) => Promise<FileSystemFileHandle[]> })
-          .showOpenFilePicker({ types: [{ description: 'Images', accept: { 'image/*': [] } }], multiple: false })
-        const file = await handle.getFile()
-        setPreviewUrl(URL.createObjectURL(file))
-        setUploading(true)
-        try {
-          await adminUploadPhoto(file)
-          toast.success('Photo uploaded')
-          refetch()
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Upload failed')
-        } finally { setUploading(false) }
-        return
-      } catch (err) {
-        if ((err as Error).name === 'AbortError') return
-        // API blocked/unavailable — fall through to input fallback
-      }
-    }
-    photoInputRef.current?.click()
-  }, [uploading, refetch])
-
   const handleResumeUpload = useCallback(async () => {
     if (uploadingResume) return
     if ('showOpenFilePicker' in window) {
@@ -233,16 +234,11 @@ export default function AdminProfile() {
           .showOpenFilePicker({ types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }], multiple: false })
         const file = await handle.getFile()
         setUploadingResume(true)
-        try {
-          await adminUploadResume(file)
-          toast.success('Resume uploaded')
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : 'Upload failed')
-        } finally { setUploadingResume(false) }
+        try { await adminUploadResume(file); toast.success('Resume uploaded') }
+        catch (err) { toast.error(err instanceof Error ? err.message : 'Upload failed') }
+        finally { setUploadingResume(false) }
         return
-      } catch (err) {
-        if ((err as Error).name === 'AbortError') return
-      }
+      } catch (err) { if ((err as Error).name === 'AbortError') return }
     }
     resumeInputRef.current?.click()
   }, [uploadingResume])
@@ -403,36 +399,52 @@ export default function AdminProfile() {
           <div className="glass rounded-xl p-6 flex flex-col items-center gap-4">
             <h2 className="text-lg font-semibold text-white self-start">Photo</h2>
 
-            {/* Avatar preview */}
-            <div className="relative w-32 h-32 rounded-full overflow-hidden bg-brand-subtle border-2 border-brand-border">
-              {currentPhoto ? (
-                <img src={currentPhoto} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <User className="w-12 h-12 text-brand-muted" />
-                </div>
-              )}
-              {uploading && (
-                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                </div>
-              )}
+            {/* Drop zone — drag an image here, ABP cannot block native drop events */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              className={`w-full flex flex-col items-center gap-3 rounded-xl border-2 border-dashed p-5 transition-colors duration-150 ${
+                isDragging ? 'border-brand-accent bg-brand-accent/10' : 'border-brand-border'
+              }`}
+            >
+              {/* Avatar preview */}
+              <div className="relative w-28 h-28 rounded-full overflow-hidden bg-brand-subtle border-2 border-brand-border">
+                {currentPhoto ? (
+                  <img src={currentPhoto} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User className="w-10 h-10 text-brand-muted" />
+                  </div>
+                )}
+                {uploading && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-brand-muted text-center leading-relaxed">
+                {isDragging ? (
+                  <span className="text-brand-accent font-medium">Drop to upload</span>
+                ) : (
+                  <>Drag & drop an image here<br />or paste with <kbd className="font-mono bg-brand-subtle px-1 rounded">Ctrl+V</kbd></>
+                )}
+              </p>
             </div>
 
+            {/* Off-screen input — last resort if browser allows it */}
             <input ref={photoInputRef} type="file" accept="image/*"
               style={{ position: 'fixed', top: '-200vh', left: 0, width: 1, height: 1 }} />
             <button
               type="button"
-              onClick={handlePhotoUpload}
+              onClick={() => photoInputRef.current?.click()}
               disabled={uploading}
-              className="btn-secondary flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="btn-secondary w-full flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <Upload className="w-4 h-4" />
-              {uploading ? 'Uploading…' : 'Upload Photo'}
+              {uploading ? 'Uploading…' : 'Browse files…'}
             </button>
-            <p className="text-xs text-brand-muted text-center">
-              Accepts any image. Auto-cropped to 400×400 square.
-            </p>
           </div>
 
           {/* QR Codes card */}

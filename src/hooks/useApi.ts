@@ -46,7 +46,14 @@ export function useApi<T>(
   }, [tick, ...deps])
 
   useEffect(() => {
-    const onFocus = () => { if (fetcherRef.current) setTick((t) => t + 1) }
+    let last = 0
+    const onFocus = () => {
+      const now = Date.now()
+      if (fetcherRef.current && now - last > 60_000) {
+        last = now
+        setTick((t) => t + 1)
+      }
+    }
     window.addEventListener('focus', onFocus)
     return () => window.removeEventListener('focus', onFocus)
   }, [])
