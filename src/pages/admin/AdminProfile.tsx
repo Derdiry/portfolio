@@ -151,6 +151,7 @@ export default function AdminProfile() {
         patent_role: form.patent_role,
       })
       toast.success('Profile saved')
+      localStorage.setItem('portfolio_data_updated', Date.now().toString())
       refetch()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Save failed')
@@ -167,6 +168,7 @@ export default function AdminProfile() {
     try {
       await adminUploadPhoto(file)
       toast.success('Photo uploaded')
+      localStorage.setItem('portfolio_data_updated', Date.now().toString())
       refetch()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Upload failed')

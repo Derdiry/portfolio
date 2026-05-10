@@ -58,5 +58,16 @@ export function useApi<T>(
     return () => window.removeEventListener('focus', onFocus)
   }, [])
 
+  // Refetch immediately when admin saves in another tab
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'portfolio_data_updated' && fetcherRef.current) {
+        setTick((t) => t + 1)
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
   return { data, loading, error, refetch }
 }
