@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useCallback, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import { Download, FileText, Upload, User } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
 import { toast } from 'react-hot-toast'
@@ -114,9 +114,11 @@ export default function AdminProfile() {
   // Photo state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const photoInputRef = useRef<HTMLInputElement>(null)
 
   // Resume state
   const [uploadingResume, setUploadingResume] = useState(false)
+  const resumeInputRef = useRef<HTMLInputElement>(null)
 
   // Sync form when profile loads (only on first load)
   if (profile && !form) {
@@ -156,17 +158,14 @@ export default function AdminProfile() {
     }
   }
 
-  const handlePhotoUpload = useCallback(() => {
-    if (uploading) return
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0'
-    document.body.appendChild(input)
-    input.onchange = async () => {
-      const file = input.files?.[0]
-      document.body.removeChild(input)
+  // Native change listeners — label click opens picker without any JS, ABP can't block it
+  useEffect(() => {
+    const el = photoInputRef.current
+    if (!el) return
+    const handler = async () => {
+      const file = el.files?.[0]
       if (!file) return
+      el.value = ''
       setPreviewUrl(URL.createObjectURL(file))
       setUploading(true)
       try {
@@ -180,20 +179,17 @@ export default function AdminProfile() {
         setUploading(false)
       }
     }
-    input.click()
-  }, [uploading, refetch])
+    el.addEventListener('change', handler)
+    return () => el.removeEventListener('change', handler)
+  }, [refetch])
 
-  const handleResumeUpload = useCallback(() => {
-    if (uploadingResume) return
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = '.pdf'
-    input.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0'
-    document.body.appendChild(input)
-    input.onchange = async () => {
-      const file = input.files?.[0]
-      document.body.removeChild(input)
+  useEffect(() => {
+    const el = resumeInputRef.current
+    if (!el) return
+    const handler = async () => {
+      const file = el.files?.[0]
       if (!file) return
+      el.value = ''
       setUploadingResume(true)
       try {
         await adminUploadResume(file)
@@ -205,8 +201,10 @@ export default function AdminProfile() {
         setUploadingResume(false)
       }
     }
-    input.click()
-  }, [uploadingResume])
+    el.addEventListener('change', handler)
+    return () => el.removeEventListener('change', handler)
+  }, [])
+
 
   if (loading) {
     return (
@@ -379,15 +377,11 @@ export default function AdminProfile() {
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={handlePhotoUpload}
-              disabled={uploading}
-              className="btn-secondary flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <label className={`btn-secondary flex items-center gap-2 cursor-pointer ${uploading ? 'opacity-60 pointer-events-none' : ''}`}>
               <Upload className="w-4 h-4" />
               {uploading ? 'Uploading…' : 'Upload Photo'}
-            </button>
+              <input ref={photoInputRef} type="file" accept="image/*" className="sr-only" />
+            </label>
             <p className="text-xs text-brand-muted text-center">
               Accepts any image. Auto-cropped to 400×400 square.
             </p>
@@ -423,15 +417,11 @@ export default function AdminProfile() {
               <FileText className="w-8 h-8 text-brand-muted" />
             </div>
 
-            <button
-              type="button"
-              onClick={handleResumeUpload}
-              disabled={uploadingResume}
-              className="btn-secondary flex items-center gap-2 justify-center w-full disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <label className={`btn-secondary flex items-center gap-2 justify-center w-full cursor-pointer ${uploadingResume ? 'opacity-60 pointer-events-none' : ''}`}>
               <Upload className="w-4 h-4" />
               {uploadingResume ? 'Uploading…' : 'Upload PDF'}
-            </button>
+              <input ref={resumeInputRef} type="file" accept=".pdf" className="sr-only" />
+            </label>
 
             <p className="text-xs text-brand-muted text-center">
               Current resume served at /uploads/resume.pdf
