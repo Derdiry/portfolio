@@ -156,14 +156,16 @@ export default function AdminProfile() {
     }
   }
 
-  // Create input on-the-fly — nothing in the DOM for extensions to pre-intercept
   const handlePhotoUpload = useCallback(() => {
     if (uploading) return
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
+    input.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0'
+    document.body.appendChild(input)
     input.onchange = async () => {
       const file = input.files?.[0]
+      document.body.removeChild(input)
       if (!file) return
       setPreviewUrl(URL.createObjectURL(file))
       setUploading(true)
@@ -186,8 +188,11 @@ export default function AdminProfile() {
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = '.pdf'
+    input.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0'
+    document.body.appendChild(input)
     input.onchange = async () => {
       const file = input.files?.[0]
+      document.body.removeChild(input)
       if (!file) return
       setUploadingResume(true)
       try {
