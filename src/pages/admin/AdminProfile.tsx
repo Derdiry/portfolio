@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useCallback, useRef, useState } from 'react'
 import { Download, FileText, Upload, User } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
 import { toast } from 'react-hot-toast'
@@ -114,11 +114,9 @@ export default function AdminProfile() {
   // Photo state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
-  const photoInputRef = useRef<HTMLInputElement>(null)
 
   // Resume state
   const [uploadingResume, setUploadingResume] = useState(false)
-  const resumeInputRef = useRef<HTMLInputElement>(null)
 
   // Sync form when profile loads (only on first load)
   if (profile && !form) {
@@ -158,14 +156,13 @@ export default function AdminProfile() {
     }
   }
 
-  // Native change listeners — label click opens picker without any JS, ABP can't block it
-  useEffect(() => {
-    const el = photoInputRef.current
-    if (!el) return
-    const handler = async () => {
-      const file = el.files?.[0]
-      if (!file) return
-      el.value = ''
+  // showOpenFilePicker is a direct browser API — no DOM element, no extension can intercept it
+  const handlePhotoUpload = useCallback(async () => {
+    if (uploading) return
+    try {
+      const [handle] = await (window as unknown as { showOpenFilePicker: (o: object) => Promise<FileSystemFileHandle[]> })
+        .showOpenFilePicker({ types: [{ description: 'Images', accept: { 'image/*': [] } }], multiple: false })
+      const file = await handle.getFile()
       setPreviewUrl(URL.createObjectURL(file))
       setUploading(true)
       try {
@@ -173,37 +170,34 @@ export default function AdminProfile() {
         toast.success('Photo uploaded')
         refetch()
       } catch (err) {
-        console.error('Photo upload error:', err)
         toast.error(err instanceof Error ? err.message : 'Upload failed')
       } finally {
         setUploading(false)
       }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') toast.error('Could not open file picker')
     }
-    el.addEventListener('change', handler)
-    return () => el.removeEventListener('change', handler)
-  }, [refetch])
+  }, [uploading, refetch])
 
-  useEffect(() => {
-    const el = resumeInputRef.current
-    if (!el) return
-    const handler = async () => {
-      const file = el.files?.[0]
-      if (!file) return
-      el.value = ''
+  const handleResumeUpload = useCallback(async () => {
+    if (uploadingResume) return
+    try {
+      const [handle] = await (window as unknown as { showOpenFilePicker: (o: object) => Promise<FileSystemFileHandle[]> })
+        .showOpenFilePicker({ types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }], multiple: false })
+      const file = await handle.getFile()
       setUploadingResume(true)
       try {
         await adminUploadResume(file)
         toast.success('Resume uploaded')
       } catch (err) {
-        console.error('Resume upload error:', err)
         toast.error(err instanceof Error ? err.message : 'Upload failed')
       } finally {
         setUploadingResume(false)
       }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') toast.error('Could not open file picker')
     }
-    el.addEventListener('change', handler)
-    return () => el.removeEventListener('change', handler)
-  }, [])
+  }, [uploadingResume])
 
 
   if (loading) {
@@ -377,19 +371,15 @@ export default function AdminProfile() {
               )}
             </div>
 
-            <div className="relative">
-              <div className={`btn-secondary flex items-center gap-2 select-none ${uploading ? 'opacity-60' : ''}`}>
-                <Upload className="w-4 h-4" />
-                {uploading ? 'Uploading…' : 'Upload Photo'}
-              </div>
-              <input
-                ref={photoInputRef}
-                type="file"
-                accept="image/*"
-                disabled={uploading}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={handlePhotoUpload}
+              disabled={uploading}
+              className="btn-secondary flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <Upload className="w-4 h-4" />
+              {uploading ? 'Uploading…' : 'Upload Photo'}
+            </button>
             <p className="text-xs text-brand-muted text-center">
               Accepts any image. Auto-cropped to 400×400 square.
             </p>
@@ -425,19 +415,15 @@ export default function AdminProfile() {
               <FileText className="w-8 h-8 text-brand-muted" />
             </div>
 
-            <div className="relative">
-              <div className={`btn-secondary flex items-center gap-2 justify-center w-full select-none ${uploadingResume ? 'opacity-60' : ''}`}>
-                <Upload className="w-4 h-4" />
-                {uploadingResume ? 'Uploading…' : 'Upload PDF'}
-              </div>
-              <input
-                ref={resumeInputRef}
-                type="file"
-                accept=".pdf"
-                disabled={uploadingResume}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={handleResumeUpload}
+              disabled={uploadingResume}
+              className="btn-secondary flex items-center gap-2 justify-center w-full disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <Upload className="w-4 h-4" />
+              {uploadingResume ? 'Uploading…' : 'Upload PDF'}
+            </button>
 
             <p className="text-xs text-brand-muted text-center">
               Current resume served at /uploads/resume.pdf
