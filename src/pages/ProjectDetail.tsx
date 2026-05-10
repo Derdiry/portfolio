@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ExternalLink, CheckCircle2, AlertCircle, BarChart2, X } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, ExternalLink, CheckCircle2, AlertCircle, BarChart2, X } from 'lucide-react'
 import GithubIcon from '@/components/icons/GithubIcon'
 import { getProjectById } from '@/data/projects'
 import { CATEGORY_META, STATUS_META } from '@/components/projects/meta'
@@ -15,13 +15,24 @@ export default function ProjectDetail() {
   const { data: apiProject } = useApi(id ? () => getProject(id) : null, [id])
   const staticProject = id ? getProjectById(id) : undefined
   const project = apiProject ? mapProject(apiProject) : staticProject
-  const [lightbox, setLightbox] = useState<string | null>(null)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const screenshots = project?.screenshots ?? []
+  const lbUrl = lightboxIndex !== null ? (getPhotoUrl(screenshots[lightboxIndex]) ?? screenshots[lightboxIndex]) : null
+
+  const lbPrev = () => setLightboxIndex(i => i !== null ? (i - 1 + screenshots.length) % screenshots.length : null)
+  const lbNext = () => setLightboxIndex(i => i !== null ? (i + 1) % screenshots.length : null)
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightbox(null) }
-    if (lightbox) window.addEventListener('keydown', handler)
+    if (lightboxIndex === null) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxIndex(null)
+      if (e.key === 'ArrowLeft') lbPrev()
+      if (e.key === 'ArrowRight') lbNext()
+    }
+    window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [lightbox])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightboxIndex, screenshots.length])
 
   if (!project) {
     return (
@@ -114,7 +125,7 @@ export default function ProjectDetail() {
               {project.screenshots.map((src, i) => (
                 <button
                   key={i}
-                  onClick={() => setLightbox(getPhotoUrl(src) ?? src)}
+                  onClick={() => setLightboxIndex(i)}
                   className="aspect-video rounded-lg overflow-hidden border border-brand-border hover:border-brand-accent/50 transition-colors"
                 >
                   <img
@@ -128,24 +139,52 @@ export default function ProjectDetail() {
           </motion.div>
         )}
 
-        {/* Lightbox */}
-        {lightbox && (
+        {/* Lightbox carousel */}
+        {lightboxIndex !== null && lbUrl && (
           <div
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-            onClick={() => setLightbox(null)}
+            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+            onClick={() => setLightboxIndex(null)}
           >
+            {/* Close */}
             <button
-              className="absolute top-4 right-4 text-white/70 hover:text-white"
-              onClick={() => setLightbox(null)}
+              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors z-10"
+              onClick={() => setLightboxIndex(null)}
             >
-              <X className="w-8 h-8" />
+              <X className="w-7 h-7" />
             </button>
+
+            {/* Counter */}
+            <span className="absolute top-4 left-1/2 -translate-x-1/2 text-white/60 text-sm font-mono">
+              {lightboxIndex + 1} / {screenshots.length}
+            </span>
+
+            {/* Prev */}
+            {screenshots.length > 1 && (
+              <button
+                className="absolute left-3 sm:left-6 text-white/60 hover:text-white transition-colors z-10 p-2"
+                onClick={(e) => { e.stopPropagation(); lbPrev() }}
+              >
+                <ChevronLeft className="w-9 h-9" />
+              </button>
+            )}
+
+            {/* Image */}
             <img
-              src={lightbox}
-              alt="Screenshot"
-              className="max-w-full max-h-full rounded-lg object-contain"
+              src={lbUrl}
+              alt={`Screenshot ${lightboxIndex + 1}`}
+              className="max-w-[85vw] max-h-[85vh] rounded-lg object-contain"
               onClick={(e) => e.stopPropagation()}
             />
+
+            {/* Next */}
+            {screenshots.length > 1 && (
+              <button
+                className="absolute right-3 sm:right-6 text-white/60 hover:text-white transition-colors z-10 p-2"
+                onClick={(e) => { e.stopPropagation(); lbNext() }}
+              >
+                <ChevronRight className="w-9 h-9" />
+              </button>
+            )}
           </div>
         )}
 
