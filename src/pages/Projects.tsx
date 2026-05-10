@@ -20,8 +20,6 @@ export default function Projects() {
 
   const { data: apiProjects, loading } = useApi(getProjects)
 
-  if (loading && !apiProjects) return <PageSkeleton />
-
   const allProjects = useMemo(
     () => apiProjects?.map(mapProject) ?? FALLBACK_PROJECTS,
     [apiProjects]
@@ -38,6 +36,8 @@ export default function Projects() {
       return matchCat && matchStatus && matchSearch
     }).sort((a, b) => a.priority - b.priority)
   }, [category, status, search, allProjects])
+
+  if (loading && !apiProjects) return <PageSkeleton />
 
   return (
     <div className="pt-24 pb-20">

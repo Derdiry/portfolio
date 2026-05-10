@@ -45,5 +45,11 @@ export function useApi<T>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tick, ...deps])
 
+  useEffect(() => {
+    const onFocus = () => { if (fetcherRef.current) setTick((t) => t + 1) }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [])
+
   return { data, loading, error, refetch }
 }
