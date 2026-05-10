@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, Phone, Linkedin, Github, MapPin, Clock, Send, CheckCircle } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 import { PROFILE } from '@/data/profile'
 import { sendContact, getProfile } from '@/lib/api'
 import { useApi } from '@/hooks/useApi'
@@ -134,23 +135,23 @@ export default function Contact() {
               </div>
             </div>
 
-            {/* QR placeholder */}
+            {/* QR Codes */}
             <div className="glass rounded-xl p-5">
               <p className="text-brand-muted text-xs mb-3">QR Codes</p>
               <div className="grid grid-cols-3 gap-2">
-                {['LinkedIn', 'Portfolio', 'vCard'].map((label) => (
+                {[
+                  { label: 'LinkedIn',  value: `https://${p.linkedin}` },
+                  { label: 'Portfolio', value: 'https://www.moderdiry.com' },
+                  { label: 'vCard',     value: `BEGIN:VCARD\nVERSION:3.0\nFN:${p.name}\nTITLE:${p.title}\nEMAIL:${p.email}\nTEL:${p.phone}\nURL:https://${p.linkedin}\nEND:VCARD` },
+                ].map(({ label, value }) => (
                   <div key={label} className="flex flex-col items-center gap-1.5">
-                    <div className="w-full aspect-square rounded bg-brand-subtle border border-brand-border
-                                     flex items-center justify-center">
-                      <span className="text-brand-muted text-xs font-mono">QR</span>
+                    <div className="w-full aspect-square rounded bg-white p-1.5 flex items-center justify-center">
+                      <QRCodeSVG value={value} size={80} bgColor="#ffffff" fgColor="#0f172a" style={{ width: '100%', height: '100%' }} />
                     </div>
                     <span className="text-brand-muted text-xs">{label}</span>
                   </div>
                 ))}
               </div>
-              <p className="text-brand-muted text-xs mt-3 text-center font-mono">
-                QR generation — Phase 3
-              </p>
             </div>
           </motion.div>
 
