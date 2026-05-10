@@ -1,5 +1,5 @@
-import { type ChangeEvent, useRef, useState } from 'react'
-import { CheckSquare, ImagePlus, Pencil, Plus, Square, Trash2, X } from 'lucide-react'
+import { type ChangeEvent, useCallback, useRef, useState } from 'react'
+import { CheckSquare, ImagePlus, Pencil, Plus, Square, Trash2, Upload, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { useApi } from '@/hooks/useApi'
 import {
@@ -123,23 +123,40 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
     modal.mode === 'edit' ? (modal.project.screenshots ?? []) : []
   )
   const [uploading, setUploading] = useState(false)
+  const [isDraggingScreenshot, setIsDraggingScreenshot] = useState(false)
+  const [queue, setQueue] = useState<{ file: File; preview: string }[]>([])
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const handleScreenshotUpload = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || modal.mode !== 'edit') return
+  const stageFiles = useCallback((files: FileList | File[]) => {
+    const images = Array.from(files).filter(f => f.type.startsWith('image/'))
+    setQueue(prev => [...prev, ...images.map(file => ({ file, preview: URL.createObjectURL(file) }))])
+  }, [])
+
+  const removeFromQueue = useCallback((index: number) => {
+    setQueue(prev => {
+      URL.revokeObjectURL(prev[index].preview)
+      return prev.filter((_, i) => i !== index)
+    })
+  }, [])
+
+  const uploadAll = useCallback(async () => {
+    if (!queue.length || modal.mode !== 'edit') return
     setUploading(true)
-    try {
-      const updated = await adminUploadScreenshot(modal.project.id, file)
-      setScreenshots(updated.screenshots ?? [])
-      toast.success('Screenshot uploaded')
-    } catch {
-      toast.error('Upload failed')
-    } finally {
-      setUploading(false)
-      if (fileRef.current) fileRef.current.value = ''
+    let latest = screenshots
+    for (const item of queue) {
+      try {
+        const result = await adminUploadScreenshot(modal.project.id, item.file)
+        latest = result.screenshots ?? latest
+        URL.revokeObjectURL(item.preview)
+      } catch {
+        toast.error(`Failed: ${item.file.name}`)
+      }
     }
-  }
+    setScreenshots(latest)
+    setQueue([])
+    setUploading(false)
+    toast.success('Screenshots uploaded')
+  }, [queue, modal, screenshots])
 
   const handleDeleteScreenshot = async (url: string) => {
     if (modal.mode !== 'edit') return
@@ -314,6 +331,8 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
           {modal.mode === 'edit' && (
             <section className="space-y-3">
               <h3 className="text-sm font-semibold text-brand-accent uppercase tracking-wide">Screenshots</h3>
+
+              {/* Uploaded screenshots */}
               {screenshots.length > 0 && (
                 <div className="grid grid-cols-3 gap-2">
                   {screenshots.map((src) => (
@@ -331,19 +350,56 @@ function ProjectModal({ modal, onClose, onSaved }: ProjectModalProps) {
                   ))}
                 </div>
               )}
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleScreenshotUpload} />
-              <button
-                type="button"
-                disabled={uploading}
+
+              {/* Staged (pending) previews */}
+              {queue.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-brand-muted">Pending upload ({queue.length})</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {queue.map((item, i) => (
+                      <div key={item.preview} className="relative group aspect-video rounded-lg overflow-hidden border border-brand-accent/40">
+                        <img src={item.preview} alt="" className="w-full h-full object-cover opacity-70" />
+                        <button
+                          type="button"
+                          onClick={() => removeFromQueue(i)}
+                          className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500/90 text-white
+                                     flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={uploadAll}
+                    disabled={uploading}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-accent text-brand-bg text-sm
+                               hover:bg-brand-accent/90 transition-colors disabled:opacity-50 w-full justify-center"
+                  >
+                    {uploading
+                      ? <span className="w-4 h-4 border-2 border-brand-bg/30 border-t-brand-bg rounded-full animate-spin" />
+                      : <Upload className="w-4 h-4" />}
+                    {uploading ? 'Uploading…' : `Upload ${queue.length} screenshot${queue.length > 1 ? 's' : ''}`}
+                  </button>
+                </div>
+              )}
+
+              {/* Drag-and-drop zone */}
+              <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
+                onChange={(e) => { if (e.target.files) stageFiles(e.target.files); if (fileRef.current) fileRef.current.value = '' }} />
+              <div
+                onDragOver={(e) => { e.preventDefault(); setIsDraggingScreenshot(true) }}
+                onDragLeave={() => setIsDraggingScreenshot(false)}
+                onDrop={(e) => { e.preventDefault(); setIsDraggingScreenshot(false); stageFiles(e.dataTransfer.files) }}
                 onClick={() => fileRef.current?.click()}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg border border-brand-border text-brand-muted
-                           hover:border-brand-accent hover:text-brand-accent transition-colors text-sm disabled:opacity-50"
+                className={`flex flex-col items-center justify-center gap-2 w-full rounded-lg border-2 border-dashed p-5
+                            cursor-pointer transition-colors text-sm
+                            ${isDraggingScreenshot ? 'border-brand-accent bg-brand-accent/10 text-brand-accent' : 'border-brand-border text-brand-muted hover:border-brand-accent hover:text-brand-accent'}`}
               >
-                {uploading
-                  ? <span className="w-4 h-4 border-2 border-brand-muted border-t-brand-accent rounded-full animate-spin" />
-                  : <ImagePlus className="w-4 h-4" />}
-                {uploading ? 'Uploading…' : 'Add Screenshot'}
-              </button>
+                <ImagePlus className="w-5 h-5" />
+                <span>Drag & drop images or click to select</span>
+              </div>
             </section>
           )}
 
