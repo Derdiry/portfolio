@@ -38,7 +38,7 @@ export default function Resume() {
         >
           <div>
             <p className="text-brand-accent font-mono text-sm mb-1">// resume</p>
-            <h1 className="text-3xl font-bold">Curriculum Vitae</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold">Curriculum Vitae</h1>
           </div>
           <a
             href={getResumeUrl()}

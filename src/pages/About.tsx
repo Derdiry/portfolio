@@ -38,7 +38,7 @@ export default function About() {
   const photoUrl = apiProfile?.photo_url ? getPhotoUrl(apiProfile.photo_url) : null
 
   return (
-    <div className="pt-20 pb-20">
+    <div className="pt-24 pb-20">
       <Seo title="About" description="ML engineer with a Master's in Computer Science from Donghua University. Co-inventor on Australian Patent #2025203718." path="/about" type="profile" />
 
       {/* ── Profile header ────────────────────────── */}

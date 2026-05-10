@@ -3,7 +3,8 @@ import { motion } from 'framer-motion'
 import { Mail, Phone, Linkedin, MapPin, Clock, Send, CheckCircle } from 'lucide-react'
 import GithubIcon from '@/components/icons/GithubIcon'
 import { PROFILE } from '@/data/profile'
-import { sendContact } from '@/lib/api'
+import { sendContact, getProfile } from '@/lib/api'
+import { useApi } from '@/hooks/useApi'
 import Seo from '@/components/Seo'
 
 interface FormState {
@@ -16,6 +17,9 @@ interface FormState {
 const INITIAL_FORM: FormState = { name: '', email: '', subject: '', message: '' }
 
 export default function Contact() {
+  const { data: apiProfile } = useApi(getProfile)
+  const profile = apiProfile ?? PROFILE
+
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -51,7 +55,7 @@ export default function Contact() {
     value: form[key],
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [key]: e.target.value })),
-    className: `w-full px-4 py-3 rounded-lg bg-brand-subtle border text-white text-sm
+    className: `w-full px-4 py-3 rounded-lg bg-brand-subtle border text-sm
                  placeholder:text-brand-muted transition-all duration-200 focus:outline-none
                  ${errors[key]
                    ? 'border-red-500 focus:border-red-400'
@@ -92,9 +96,9 @@ export default function Contact() {
           >
             {/* Info cards */}
             {[
-              { icon: Mail,   label: 'Email',    value: PROFILE.email,    href: `mailto:${PROFILE.email}` },
-              { icon: Phone,  label: 'Phone',    value: PROFILE.phone,    href: `tel:${PROFILE.phone}` },
-              { icon: MapPin, label: 'Location', value: PROFILE.location, href: undefined },
+              { icon: Mail,   label: 'Email',    value: profile.email,    href: `mailto:${profile.email}` },
+              { icon: Phone,  label: 'Phone',    value: profile.phone,    href: `tel:${profile.phone}` },
+              { icon: MapPin, label: 'Location', value: profile.location, href: undefined },
               { icon: Clock,  label: 'Timezone', value: 'AST (UTC+3)',    href: undefined },
             ].map(({ icon: Icon, label, value, href }) => (
               <div key={label} className="glass rounded-xl p-4 flex items-start gap-3
@@ -106,11 +110,11 @@ export default function Contact() {
                 <div>
                   <p className="text-brand-muted text-xs mb-0.5">{label}</p>
                   {href ? (
-                    <a href={href} className="text-white text-sm hover:text-brand-accent transition-colors">
+                    <a href={href} className="text-sm hover:text-brand-accent transition-colors">
                       {value}
                     </a>
                   ) : (
-                    <p className="text-white text-sm">{value}</p>
+                    <p className="text-sm">{value}</p>
                   )}
                 </div>
               </div>
@@ -121,7 +125,7 @@ export default function Contact() {
               <p className="text-brand-muted text-xs mb-4">Profiles</p>
               <div className="space-y-3">
                 <a
-                  href={`https://${PROFILE.linkedin}`}
+                  href={`https://${profile.linkedin}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-brand-muted hover:text-brand-accent transition-colors text-sm group"
@@ -130,10 +134,10 @@ export default function Contact() {
                                   group-hover:bg-brand-accent/10 transition-colors duration-200">
                     <Linkedin className="w-3.5 h-3.5" />
                   </div>
-                  {PROFILE.linkedin}
+                  {profile.linkedin}
                 </a>
                 <a
-                  href={`https://${PROFILE.github}`}
+                  href={`https://${profile.github}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-brand-muted hover:text-brand-accent transition-colors text-sm group"
@@ -142,7 +146,7 @@ export default function Contact() {
                                   group-hover:bg-brand-accent/10 transition-colors duration-200">
                     <GithubIcon className="w-3.5 h-3.5" />
                   </div>
-                  {PROFILE.github}
+                  {profile.github}
                 </a>
               </div>
             </div>

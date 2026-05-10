@@ -181,8 +181,8 @@ export default function Home() {
                 className="lg:col-span-2 flex items-center justify-center"
               >
                 <div className="relative flex items-center justify-center">
-                  <div className="absolute w-[300px] h-[300px] rounded-full border border-dashed border-brand-accent/25 profile-ring" />
-                  <div className="absolute w-[346px] h-[346px] rounded-full border border-brand-purple/15 profile-ring-reverse" />
+                  <div className={`absolute w-[300px] h-[300px] rounded-full border border-dashed border-brand-accent/25 profile-ring transition-opacity duration-500 ${photoUrl ? 'opacity-100' : 'opacity-0'}`} />
+                  <div className={`absolute w-[346px] h-[346px] rounded-full border border-brand-purple/15 profile-ring-reverse transition-opacity duration-500 ${photoUrl ? 'opacity-100' : 'opacity-0'}`} />
                   <div className="absolute w-60 h-60 rounded-full bg-gradient-to-br from-cyan-500/20 to-violet-600/20 blur-2xl" />
                   {photoUrl ? (
                     <img

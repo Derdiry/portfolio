@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ExternalLink, CheckCircle2, AlertCircle, BarChart2, X } from 'lucide-react'
@@ -16,6 +16,12 @@ export default function ProjectDetail() {
   const staticProject = id ? getProjectById(id) : undefined
   const project = apiProject ? mapProject(apiProject) : staticProject
   const [lightbox, setLightbox] = useState<string | null>(null)
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightbox(null) }
+    if (lightbox) window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [lightbox])
 
   if (!project) {
     return (
@@ -65,7 +71,7 @@ export default function ProjectDetail() {
             </span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-2">{project.title}</h1>
+          <h1 className="text-4xl sm:text-5xl font-bold mb-2">{project.title}</h1>
           <p className="text-xl text-brand-muted mb-6">{project.subtitle}</p>
 
           {/* Links */}
@@ -101,7 +107,7 @@ export default function ProjectDetail() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mb-10"
           >
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
               <span className="w-1 h-6 bg-brand-accent rounded-full" /> Screenshots
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -150,7 +156,7 @@ export default function ProjectDetail() {
           transition={{ duration: 0.5, delay: 0.15 }}
           className="mb-10"
         >
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <span className="w-1 h-6 bg-brand-accent rounded-full" /> Overview
           </h2>
           <div className="space-y-4">
@@ -168,7 +174,7 @@ export default function ProjectDetail() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="glass rounded-xl p-6"
           >
-            <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+            <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-amber-400" /> The Problem
             </h2>
             <p className="text-slate-400 text-sm leading-relaxed">{project.problem}</p>
@@ -181,7 +187,7 @@ export default function ProjectDetail() {
             transition={{ duration: 0.5, delay: 0.25 }}
             className="glass rounded-xl p-6"
           >
-            <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+            <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-brand-accent" /> Technical Approach
             </h2>
             <p className="text-slate-400 text-sm leading-relaxed">{project.approach}</p>
@@ -195,7 +201,7 @@ export default function ProjectDetail() {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="mb-10"
         >
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <span className="w-1 h-6 bg-brand-accent rounded-full" /> Key Features
           </h2>
           <ul className="grid sm:grid-cols-2 gap-3">
@@ -215,7 +221,7 @@ export default function ProjectDetail() {
           transition={{ duration: 0.5, delay: 0.35 }}
           className="mb-10"
         >
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <span className="w-1 h-6 bg-brand-accent rounded-full" /> Tech Stack
           </h2>
           <div className="flex flex-wrap gap-2">
@@ -240,7 +246,7 @@ export default function ProjectDetail() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="mb-10"
           >
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
               <BarChart2 className="w-5 h-5 text-emerald-400" /> Results & Metrics
             </h2>
             <div className="glass rounded-xl p-6">
