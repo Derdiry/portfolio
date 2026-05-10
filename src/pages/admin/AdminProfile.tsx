@@ -119,6 +119,8 @@ export default function AdminProfile() {
 
   // Resume state
   const [uploadingResume, setUploadingResume] = useState(false)
+  const [isDraggingResume, setIsDraggingResume] = useState(false)
+  const [resumeFileName, setResumeFileName] = useState<string | null>(null)
   const resumeInputRef = useRef<HTMLInputElement>(null)
 
   // Sync form when profile loads (only on first load)
@@ -209,39 +211,39 @@ export default function AdminProfile() {
     return () => el.removeEventListener('change', handler)
   }, [processPhoto])
 
+  const processResume = useCallback(async (file: File) => {
+    if (file.type !== 'application/pdf') { toast.error('Please select a PDF file'); return }
+    setResumeFileName(file.name)
+    setUploadingResume(true)
+    try {
+      await adminUploadResume(file)
+      toast.success('Resume uploaded')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed')
+    } finally { setUploadingResume(false) }
+  }, [])
+
   useEffect(() => {
     const el = resumeInputRef.current
     if (!el) return
-    const handler = async () => {
+    const handler = () => {
       const file = el.files?.[0]
       if (!file) return
       el.value = ''
-      setUploadingResume(true)
-      try {
-        await adminUploadResume(file)
-        toast.success('Resume uploaded')
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Upload failed')
-      } finally { setUploadingResume(false) }
+      processResume(file)
     }
     el.addEventListener('change', handler)
     return () => el.removeEventListener('change', handler)
-  }, [])
+  }, [processResume])
+
+  const handleResumeDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault(); setIsDraggingResume(false)
+    const file = e.dataTransfer.files[0]
+    if (file && !uploadingResume) processResume(file)
+  }, [uploadingResume, processResume])
 
   const handleResumeUpload = useCallback(async () => {
     if (uploadingResume) return
-    if ('showOpenFilePicker' in window) {
-      try {
-        const [handle] = await (window as unknown as { showOpenFilePicker: (o: object) => Promise<FileSystemFileHandle[]> })
-          .showOpenFilePicker({ types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }], multiple: false })
-        const file = await handle.getFile()
-        setUploadingResume(true)
-        try { await adminUploadResume(file); toast.success('Resume uploaded') }
-        catch (err) { toast.error(err instanceof Error ? err.message : 'Upload failed') }
-        finally { setUploadingResume(false) }
-        return
-      } catch (err) { if ((err as Error).name === 'AbortError') return }
-    }
     resumeInputRef.current?.click()
   }, [uploadingResume])
 
@@ -475,24 +477,29 @@ export default function AdminProfile() {
           <div className="glass rounded-xl p-6 flex flex-col gap-4">
             <h2 className="text-lg font-semibold text-white">Resume PDF</h2>
 
-            <div className="flex items-center justify-center w-full h-20 rounded-lg bg-brand-subtle border border-brand-border">
-              <FileText className="w-8 h-8 text-brand-muted" />
+            <div
+              onDragOver={(e) => { e.preventDefault(); setIsDraggingResume(true) }}
+              onDragLeave={() => setIsDraggingResume(false)}
+              onDrop={handleResumeDrop}
+              className={`flex flex-col items-center justify-center gap-2 w-full rounded-lg border-2 border-dashed p-6 transition-colors cursor-pointer
+                ${isDraggingResume ? 'border-brand-accent bg-brand-accent/10' : 'border-brand-border bg-brand-subtle'}`}
+              onClick={handleResumeUpload}
+            >
+              <FileText className={`w-8 h-8 ${resumeFileName ? 'text-brand-accent' : 'text-brand-muted'}`} />
+              {uploadingResume ? (
+                <span className="text-brand-muted text-xs">Uploading…</span>
+              ) : resumeFileName ? (
+                <span className="text-brand-accent text-xs font-mono">{resumeFileName}</span>
+              ) : (
+                <span className="text-brand-muted text-xs text-center">Drag & drop PDF here</span>
+              )}
             </div>
 
             <input ref={resumeInputRef} type="file" accept=".pdf"
               style={{ position: 'fixed', top: '-200vh', left: 0, width: 1, height: 1 }} />
-            <button
-              type="button"
-              onClick={handleResumeUpload}
-              disabled={uploadingResume}
-              className="btn-secondary flex items-center gap-2 justify-center w-full disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <Upload className="w-4 h-4" />
-              {uploadingResume ? 'Uploading…' : 'Upload PDF'}
-            </button>
 
             <p className="text-xs text-brand-muted text-center">
-              Current resume served at /uploads/resume.pdf
+              Served at /uploads/resume.pdf
             </p>
           </div>
         </div>
