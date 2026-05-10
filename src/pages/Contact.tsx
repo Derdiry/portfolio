@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Send, CheckCircle } from 'lucide-react'
+import { Mail, Phone, Linkedin, Github, MapPin, Clock, Send, CheckCircle } from 'lucide-react'
 import { PROFILE } from '@/data/profile'
-import { sendContact, getProfile } from '@/lib/api'
-import { useApi } from '@/hooks/useApi'
+import { sendContact } from '@/lib/api'
 import Seo from '@/components/Seo'
 
 interface FormState {
@@ -14,24 +13,20 @@ interface FormState {
 }
 
 const INITIAL_FORM: FormState = { name: '', email: '', subject: '', message: '' }
-const ease: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
 export default function Contact() {
-  const { data: apiProfile } = useApi(getProfile)
-  const profile = apiProfile ?? PROFILE
-
-  const [form, setForm]           = useState<FormState>(INITIAL_FORM)
+  const [form, setForm] = useState<FormState>(INITIAL_FORM)
   const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted]   = useState(false)
-  const [errors, setErrors]         = useState<Partial<FormState>>({})
+  const [submitted, setSubmitted] = useState(false)
+  const [errors, setErrors] = useState<Partial<FormState>>({})
 
   const validate = (): boolean => {
     const e: Partial<FormState> = {}
-    if (!form.name.trim())    e.name    = 'Required'
-    if (!form.email.trim())   e.email   = 'Required'
-    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Invalid email'
-    if (!form.subject.trim()) e.subject = 'Required'
-    if (!form.message.trim()) e.message = 'Required'
+    if (!form.name.trim())    e.name    = 'Name is required'
+    if (!form.email.trim())   e.email   = 'Email is required'
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Invalid email address'
+    if (!form.subject.trim()) e.subject = 'Subject is required'
+    if (!form.message.trim()) e.message = 'Message is required'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -45,162 +40,204 @@ export default function Contact() {
       setSubmitted(true)
       setForm(INITIAL_FORM)
     } catch {
-      setErrors({ message: 'Failed to send. Please email me directly.' })
+      setErrors({ message: 'Failed to send message. Please email me directly.' })
     } finally {
       setSubmitting(false)
     }
   }
 
-  const fieldProps = (key: keyof FormState) => ({
+  const field = (key: keyof FormState) => ({
     value: form[key],
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [key]: e.target.value })),
+    className: `w-full px-4 py-3 rounded-lg bg-brand-subtle border text-white text-sm
+                 placeholder:text-brand-muted transition-colors focus:outline-none
+                 ${errors[key] ? 'border-red-500 focus:border-red-400' : 'border-brand-border focus:border-brand-accent'}`,
   })
-
-  const INFO = [
-    { label: 'EMAIL',    value: profile.email,    href: `mailto:${profile.email}` },
-    { label: 'PHONE',    value: profile.phone,    href: `tel:${profile.phone}` },
-    { label: 'LOCATION', value: profile.location, href: undefined },
-    { label: 'TIMEZONE', value: 'AST (UTC+3)',    href: undefined },
-  ]
 
   return (
     <div className="pt-24 pb-20">
       <Seo title="Contact" description="Get in touch with Mohamed Alderdiry for ML engineering roles, research collaborations, and interesting problems." path="/contact" />
-
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
           className="mb-12"
         >
-          <p className="font-mono text-xs text-brand-accent uppercase tracking-[0.2em] mb-3">// get in touch</p>
-          <h1 className="text-4xl sm:text-5xl font-display font-bold mb-3">Contact</h1>
-          <p className="text-brand-muted text-sm max-w-md">
+          <p className="text-brand-accent font-mono text-sm mb-2">// get in touch</p>
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Contact</h1>
+          <p className="text-brand-muted max-w-md">
             Open to ML engineering roles, research collaborations, and interesting problems.
           </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16">
-
-          {/* Info side */}
+        <div className="grid lg:grid-cols-5 gap-10">
+          {/* Contact info */}
           <motion.div
-            initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1, ease }}
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="lg:col-span-2 space-y-6"
           >
-            <div className="space-y-0 divide-y divide-brand-border/50">
-              {INFO.map(({ label, value, href }) => (
-                <div key={label} className="py-5 first:pt-0">
-                  <p className="font-mono text-xs text-brand-accent uppercase tracking-[0.15em] mb-1">{label}</p>
+            {/* Info cards */}
+            {[
+              { icon: Mail,     label: 'Email',    value: PROFILE.email,    href: `mailto:${PROFILE.email}` },
+              { icon: Phone,    label: 'Phone',    value: PROFILE.phone,    href: `tel:${PROFILE.phone}` },
+              { icon: MapPin,   label: 'Location', value: PROFILE.location, href: undefined },
+              { icon: Clock,    label: 'Timezone', value: 'AST (UTC+3)',    href: undefined },
+            ].map(({ icon: Icon, label, value, href }) => (
+              <div key={label} className="glass rounded-xl p-4 flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-brand-accent/10 flex items-center justify-center flex-shrink-0">
+                  <Icon className="w-4 h-4 text-brand-accent" />
+                </div>
+                <div>
+                  <p className="text-brand-muted text-xs mb-0.5">{label}</p>
                   {href ? (
-                    <a href={href} className="text-sm hover:text-brand-accent transition-colors duration-150">
+                    <a href={href} className="text-white text-sm hover:text-brand-accent transition-colors">
                       {value}
                     </a>
                   ) : (
-                    <p className="text-sm">{value}</p>
+                    <p className="text-white text-sm">{value}</p>
                   )}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
 
-            {/* Social links */}
-            <div className="mt-8 pt-6 border-t border-brand-border/50">
-              <p className="font-mono text-xs text-brand-accent uppercase tracking-[0.15em] mb-4">Profiles</p>
-              <div className="flex flex-col gap-3">
-                <a href={`https://${profile.linkedin}`} target="_blank" rel="noopener noreferrer"
-                   className="text-sm text-brand-muted hover:text-[var(--color-text)] transition-colors duration-150">
-                  LinkedIn — {profile.linkedin}
+            {/* Social */}
+            <div className="glass rounded-xl p-4">
+              <p className="text-brand-muted text-xs mb-3">Profiles</p>
+              <div className="space-y-3">
+                <a
+                  href={`https://${PROFILE.linkedin}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-brand-muted hover:text-brand-accent transition-colors text-sm"
+                >
+                  <Linkedin className="w-4 h-4" />
+                  {PROFILE.linkedin}
                 </a>
-                <a href={`https://${profile.github}`} target="_blank" rel="noopener noreferrer"
-                   className="text-sm text-brand-muted hover:text-[var(--color-text)] transition-colors duration-150">
-                  GitHub — {profile.github}
+                <a
+                  href={`https://${PROFILE.github}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-brand-muted hover:text-brand-accent transition-colors text-sm"
+                >
+                  <Github className="w-4 h-4" />
+                  {PROFILE.github}
                 </a>
               </div>
+            </div>
+
+            {/* QR placeholder */}
+            <div className="glass rounded-xl p-5">
+              <p className="text-brand-muted text-xs mb-3">QR Codes</p>
+              <div className="grid grid-cols-3 gap-2">
+                {['LinkedIn', 'Portfolio', 'vCard'].map((label) => (
+                  <div key={label} className="flex flex-col items-center gap-1.5">
+                    <div className="w-full aspect-square rounded bg-brand-subtle border border-brand-border
+                                     flex items-center justify-center">
+                      <span className="text-brand-muted text-xs font-mono">QR</span>
+                    </div>
+                    <span className="text-brand-muted text-xs">{label}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-brand-muted text-xs mt-3 text-center font-mono">
+                QR generation — Phase 3
+              </p>
             </div>
           </motion.div>
 
-          {/* Form side */}
+          {/* Form */}
           <motion.div
-            initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.15, ease }}
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+            className="lg:col-span-3"
           >
-            {submitted ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-brand-emerald/10 border border-brand-emerald/30
-                                flex items-center justify-center">
-                  <CheckCircle className="w-7 h-7 text-brand-emerald" />
-                </div>
-                <div>
-                  <h3 className="font-display font-semibold text-lg mb-2">Message sent</h3>
-                  <p className="text-brand-muted text-sm">I'll get back to you as soon as possible.</p>
-                </div>
-                <button
-                  onClick={() => setSubmitted(false)}
-                  className="text-brand-accent text-sm hover:underline font-mono mt-2"
-                >
-                  Send another
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} noValidate className="space-y-8">
-                <h2 className="font-display font-semibold text-lg">Send a Message</h2>
-
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block font-mono text-xs text-brand-muted uppercase tracking-widest mb-2">
-                      Name <span className="text-brand-accent">*</span>
-                    </label>
-                    <input type="text" placeholder="Your name" {...fieldProps('name')}
-                           className="input-underline" />
-                    {errors.name && <p className="text-red-400 text-xs mt-1 font-mono">{errors.name}</p>}
+            <div className="glass rounded-xl p-8">
+              {submitted ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30
+                                   flex items-center justify-center">
+                    <CheckCircle className="w-8 h-8 text-green-400" />
                   </div>
                   <div>
-                    <label className="block font-mono text-xs text-brand-muted uppercase tracking-widest mb-2">
-                      Email <span className="text-brand-accent">*</span>
-                    </label>
-                    <input type="email" placeholder="your@email.com" {...fieldProps('email')}
-                           className="input-underline" />
-                    {errors.email && <p className="text-red-400 text-xs mt-1 font-mono">{errors.email}</p>}
+                    <h3 className="text-white font-semibold text-lg mb-2">Message sent!</h3>
+                    <p className="text-brand-muted text-sm">
+                      I'll get back to you as soon as possible.
+                    </p>
                   </div>
+                  <button
+                    onClick={() => setSubmitted(false)}
+                    className="text-brand-accent text-sm hover:underline mt-2"
+                  >
+                    Send another message
+                  </button>
                 </div>
+              ) : (
+                <form onSubmit={handleSubmit} noValidate className="space-y-5">
+                  <h2 className="text-white font-semibold text-lg mb-6">Send a Message</h2>
 
-                <div>
-                  <label className="block font-mono text-xs text-brand-muted uppercase tracking-widest mb-2">
-                    Subject <span className="text-brand-accent">*</span>
-                  </label>
-                  <input type="text" placeholder="What's this about?" {...fieldProps('subject')}
-                         className="input-underline" />
-                  {errors.subject && <p className="text-red-400 text-xs mt-1 font-mono">{errors.subject}</p>}
-                </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-brand-muted mb-1.5">
+                        Name <span className="text-red-400">*</span>
+                      </label>
+                      <input type="text" placeholder="Your name" {...field('name')} />
+                      {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-brand-muted mb-1.5">
+                        Email <span className="text-red-400">*</span>
+                      </label>
+                      <input type="email" placeholder="your@email.com" {...field('email')} />
+                      {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block font-mono text-xs text-brand-muted uppercase tracking-widest mb-2">
-                    Message <span className="text-brand-accent">*</span>
-                  </label>
-                  <textarea
-                    rows={5}
-                    placeholder="Tell me about your project or opportunity…"
-                    {...fieldProps('message')}
-                    className="input-underline resize-none"
-                  />
-                  {errors.message && <p className="text-red-400 text-xs mt-1 font-mono">{errors.message}</p>}
-                </div>
+                  <div>
+                    <label className="block text-xs font-medium text-brand-muted mb-1.5">
+                      Subject <span className="text-red-400">*</span>
+                    </label>
+                    <input type="text" placeholder="What's this about?" {...field('subject')} />
+                    {errors.subject && <p className="text-red-400 text-xs mt-1">{errors.subject}</p>}
+                  </div>
 
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="btn-primary w-full justify-between disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  <span>{submitting ? 'Sending…' : 'Send Message'}</span>
-                  {submitting
-                    ? <span className="w-4 h-4 rounded-full border-2 border-brand-bg/40 border-t-brand-bg animate-spin" />
-                    : <Send className="w-4 h-4" />
-                  }
-                </button>
-              </form>
-            )}
+                  <div>
+                    <label className="block text-xs font-medium text-brand-muted mb-1.5">
+                      Message <span className="text-red-400">*</span>
+                    </label>
+                    <textarea
+                      rows={6}
+                      placeholder="Tell me about your project or opportunity…"
+                      {...field('message')}
+                    />
+                    {errors.message && <p className="text-red-400 text-xs mt-1">{errors.message}</p>}
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="btn-primary w-full justify-center disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {submitting ? (
+                      <>
+                        <span className="w-4 h-4 rounded-full border-2 border-brand-bg border-t-transparent animate-spin" />
+                        Sending…
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" /> Send Message
+                      </>
+                    )}
+                  </button>
+
+                </form>
+              )}
+            </div>
           </motion.div>
         </div>
       </div>
