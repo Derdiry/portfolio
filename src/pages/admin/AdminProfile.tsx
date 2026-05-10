@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useCallback, useRef, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Download, FileText, Upload, User } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
 import { toast } from 'react-hot-toast'
@@ -114,9 +114,11 @@ export default function AdminProfile() {
   // Photo state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
+  const photoInputRef = useRef<HTMLInputElement>(null)
 
   // Resume state
   const [uploadingResume, setUploadingResume] = useState(false)
+  const resumeInputRef = useRef<HTMLInputElement>(null)
 
   // Sync form when profile loads (only on first load)
   if (profile && !form) {
@@ -156,13 +158,14 @@ export default function AdminProfile() {
     }
   }
 
-  // showOpenFilePicker is a direct browser API — no DOM element, no extension can intercept it
-  const handlePhotoUpload = useCallback(async () => {
-    if (uploading) return
-    try {
-      const [handle] = await (window as unknown as { showOpenFilePicker: (o: object) => Promise<FileSystemFileHandle[]> })
-        .showOpenFilePicker({ types: [{ description: 'Images', accept: { 'image/*': [] } }], multiple: false })
-      const file = await handle.getFile()
+  // Native listeners on off-screen inputs (fallback path)
+  useEffect(() => {
+    const el = photoInputRef.current
+    if (!el) return
+    const handler = async () => {
+      const file = el.files?.[0]
+      if (!file) return
+      el.value = ''
       setPreviewUrl(URL.createObjectURL(file))
       setUploading(true)
       try {
@@ -171,32 +174,77 @@ export default function AdminProfile() {
         refetch()
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Upload failed')
-      } finally {
-        setUploading(false)
-      }
-    } catch (err) {
-      if ((err as Error).name !== 'AbortError') toast.error('Could not open file picker')
+      } finally { setUploading(false) }
     }
-  }, [uploading, refetch])
+    el.addEventListener('change', handler)
+    return () => el.removeEventListener('change', handler)
+  }, [refetch])
 
-  const handleResumeUpload = useCallback(async () => {
-    if (uploadingResume) return
-    try {
-      const [handle] = await (window as unknown as { showOpenFilePicker: (o: object) => Promise<FileSystemFileHandle[]> })
-        .showOpenFilePicker({ types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }], multiple: false })
-      const file = await handle.getFile()
+  useEffect(() => {
+    const el = resumeInputRef.current
+    if (!el) return
+    const handler = async () => {
+      const file = el.files?.[0]
+      if (!file) return
+      el.value = ''
       setUploadingResume(true)
       try {
         await adminUploadResume(file)
         toast.success('Resume uploaded')
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Upload failed')
-      } finally {
-        setUploadingResume(false)
-      }
-    } catch (err) {
-      if ((err as Error).name !== 'AbortError') toast.error('Could not open file picker')
+      } finally { setUploadingResume(false) }
     }
+    el.addEventListener('change', handler)
+    return () => el.removeEventListener('change', handler)
+  }, [])
+
+  const handlePhotoUpload = useCallback(async () => {
+    if (uploading) return
+    // Try modern API first — no DOM element, extensions can't intercept
+    if ('showOpenFilePicker' in window) {
+      try {
+        const [handle] = await (window as unknown as { showOpenFilePicker: (o: object) => Promise<FileSystemFileHandle[]> })
+          .showOpenFilePicker({ types: [{ description: 'Images', accept: { 'image/*': [] } }], multiple: false })
+        const file = await handle.getFile()
+        setPreviewUrl(URL.createObjectURL(file))
+        setUploading(true)
+        try {
+          await adminUploadPhoto(file)
+          toast.success('Photo uploaded')
+          refetch()
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Upload failed')
+        } finally { setUploading(false) }
+        return
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return
+        // API blocked/unavailable — fall through to input fallback
+      }
+    }
+    photoInputRef.current?.click()
+  }, [uploading, refetch])
+
+  const handleResumeUpload = useCallback(async () => {
+    if (uploadingResume) return
+    if ('showOpenFilePicker' in window) {
+      try {
+        const [handle] = await (window as unknown as { showOpenFilePicker: (o: object) => Promise<FileSystemFileHandle[]> })
+          .showOpenFilePicker({ types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }], multiple: false })
+        const file = await handle.getFile()
+        setUploadingResume(true)
+        try {
+          await adminUploadResume(file)
+          toast.success('Resume uploaded')
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : 'Upload failed')
+        } finally { setUploadingResume(false) }
+        return
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') return
+      }
+    }
+    resumeInputRef.current?.click()
   }, [uploadingResume])
 
 
@@ -371,6 +419,8 @@ export default function AdminProfile() {
               )}
             </div>
 
+            <input ref={photoInputRef} type="file" accept="image/*"
+              style={{ position: 'fixed', top: '-200vh', left: 0, width: 1, height: 1 }} />
             <button
               type="button"
               onClick={handlePhotoUpload}
@@ -415,6 +465,8 @@ export default function AdminProfile() {
               <FileText className="w-8 h-8 text-brand-muted" />
             </div>
 
+            <input ref={resumeInputRef} type="file" accept=".pdf"
+              style={{ position: 'fixed', top: '-200vh', left: 0, width: 1, height: 1 }} />
             <button
               type="button"
               onClick={handleResumeUpload}
