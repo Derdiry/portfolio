@@ -2,7 +2,7 @@ import type { ProjectCategory, ProjectStatus } from '@/types'
 
 export const CATEGORY_META: Record<ProjectCategory, { label: string; color: string; bar: string }> = {
   time_series:          { label: 'Time Series',          color: 'text-amber-400 border-amber-400/30  bg-amber-400/10',    bar: 'bg-amber-400'   },
-  nlp_rag:              { label: 'NLP / RAG',            color: 'text-violet-400 border-violet-400/30 bg-violet-400/10',  bar: 'bg-violet-400'  },
+  nlp_rag:              { label: 'NLP / RAG',            color: 'text-sky-400 border-sky-400/30 bg-sky-400/10',          bar: 'bg-sky-400'     },
   mlops:                { label: 'MLOps',                color: 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10', bar: 'bg-emerald-400' },
   industrial_ai:        { label: 'Industrial AI',        color: 'text-blue-400 border-blue-400/30 bg-blue-400/10',        bar: 'bg-blue-400'    },
   business_intelligence:{ label: 'Business Intelligence',color: 'text-orange-400 border-orange-400/30 bg-orange-400/10',  bar: 'bg-orange-400'  },

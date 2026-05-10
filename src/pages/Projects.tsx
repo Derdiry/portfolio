@@ -1,17 +1,18 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ExternalLink, ArrowRight, Search } from 'lucide-react'
-import GithubIcon from '@/components/icons/GithubIcon'
+import { ArrowRight, Search } from 'lucide-react'
 import { PROJECTS as FALLBACK_PROJECTS } from '@/data/projects'
 import { CATEGORY_META, STATUS_META, ALL_CATEGORIES } from '@/components/projects/meta'
 import type { ProjectCategory, ProjectStatus } from '@/types'
 import Seo from '@/components/Seo'
 import PageSkeleton from '@/components/PageSkeleton'
 import { useApi } from '@/hooks/useApi'
-import { getProjects, mapProject, getPhotoUrl } from '@/lib/api'
+import { getProjects, mapProject } from '@/lib/api'
 
 type StatusFilter = ProjectStatus | 'all'
+
+const ease: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
 export default function Projects() {
   const [category, setCategory] = useState<ProjectCategory | 'all'>('all')
@@ -42,191 +43,127 @@ export default function Projects() {
   return (
     <div className="pt-24 pb-20">
       <Seo title="Projects" description="Production ML systems by Mohamed Alderdiry — gold price forecasting, RAG chatbots, MLOps platforms, and industrial AI decision support." path="/projects" />
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-12"
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease }}
+          className="mb-10"
         >
-          <p className="text-brand-accent font-mono text-sm mb-2">// all work</p>
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">Projects</h1>
-          <p className="text-brand-muted max-w-xl">
+          <p className="font-mono text-xs text-brand-accent uppercase tracking-[0.2em] mb-4">// all work</p>
+          <h1 className="text-4xl sm:text-5xl font-display font-bold mb-3">Projects</h1>
+          <p className="text-brand-muted text-sm max-w-xl">
             Production ML systems, MLOps infrastructure, and applied AI research.
           </p>
         </motion.div>
 
         {/* Filters */}
         <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mb-10 space-y-4"
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1, ease }}
+          className="flex flex-wrap gap-3 mb-3 items-center"
         >
           {/* Search */}
-          <div className="relative max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-muted" />
+          <div className="relative flex-1 min-w-48">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-brand-muted" />
             <input
               type="text"
-              placeholder="Search projects or tech…"
+              placeholder="Search…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-brand-subtle border border-brand-border
-                         text-[var(--color-text)] placeholder:text-brand-muted text-sm
-                         focus:outline-none focus:border-brand-accent transition-colors"
+              className="w-full pl-8 pr-4 py-2 rounded-lg bg-brand-subtle border border-brand-border
+                         text-[var(--color-text)] placeholder:text-brand-muted text-sm font-mono
+                         focus:outline-none focus:border-brand-accent transition-colors duration-150"
             />
           </div>
 
-          {/* Category filter */}
-          <div className="flex flex-wrap gap-2">
+          {/* Category dropdown */}
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value as ProjectCategory | 'all')}
+            className="py-2 px-3 rounded-lg bg-brand-subtle border border-brand-border text-sm font-mono
+                       text-brand-muted focus:outline-none focus:border-brand-accent transition-colors duration-150
+                       cursor-pointer"
+          >
             {ALL_CATEGORIES.map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => setCategory(value)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  category === value
-                    ? 'bg-brand-accent text-brand-bg shadow-lg shadow-brand-accent/20'
-                    : 'bg-brand-subtle border border-brand-border text-brand-muted hover:text-[var(--color-text)] hover:border-brand-accent/50'
-                }`}
-              >
-                {label}
-              </button>
+              <option key={value} value={value}>{label}</option>
             ))}
-          </div>
+          </select>
 
-          {/* Status filter */}
-          <div className="flex flex-wrap gap-2">
-            {(['all', 'complete', 'in_progress', 'papers_in_prep'] as StatusFilter[]).map((s) => {
-              const label = s === 'all' ? 'All Status' : STATUS_META[s as ProjectStatus].label
-              const dot   = s !== 'all' ? STATUS_META[s as ProjectStatus].dot : null
-              return (
-                <button
-                  key={s}
-                  onClick={() => setStatus(s)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
-                    status === s
-                      ? 'bg-brand-accent/15 border border-brand-accent text-brand-accent'
-                      : 'bg-brand-subtle border border-brand-border text-brand-muted hover:text-[var(--color-text)]'
-                  }`}
-                >
-                  {dot && <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />}
-                  {label}
-                </button>
-              )
-            })}
-          </div>
+          {/* Status dropdown */}
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as StatusFilter)}
+            className="py-2 px-3 rounded-lg bg-brand-subtle border border-brand-border text-sm font-mono
+                       text-brand-muted focus:outline-none focus:border-brand-accent transition-colors duration-150
+                       cursor-pointer"
+          >
+            <option value="all">All Status</option>
+            <option value="complete">Complete</option>
+            <option value="in_progress">In Progress</option>
+            <option value="papers_in_prep">Papers in Prep</option>
+          </select>
         </motion.div>
 
         {/* Results count */}
-        <p className="text-brand-muted text-sm mb-6 font-mono">
-          {filtered.length} project{filtered.length !== 1 ? 's' : ''} found
+        <p className="text-brand-muted text-xs font-mono mb-6">
+          {filtered.length} result{filtered.length !== 1 ? 's' : ''}
         </p>
 
-        {/* Project grid */}
-        <div className="grid gap-6 md:grid-cols-2">
+        {/* Project index */}
+        <div className="divide-y divide-brand-border/60">
           {filtered.map((project, i) => {
             const cat = CATEGORY_META[project.category]
             const st  = STATUS_META[project.status]
-            const thumb = project.screenshots?.[0]
-            const thumbUrl = thumb ? (getPhotoUrl(thumb) ?? thumb) : null
-
             return (
-              <motion.article
+              <motion.div
                 key={project.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, delay: i * 0.06 }}
-                className="glass rounded-xl overflow-hidden flex flex-col
-                           hover:border-brand-accent/40 transition-all duration-300
-                           hover:shadow-xl hover:shadow-brand-accent/5 hover:-translate-y-1 group"
+                transition={{ duration: 0.4, delay: i * 0.05, ease }}
               >
-                {/* Thumbnail or category bar */}
-                {thumbUrl ? (
-                  <div className="h-44 overflow-hidden flex-shrink-0">
-                    <img
-                      src={thumbUrl}
-                      alt={project.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                <Link
+                  to={`/projects/${project.id}`}
+                  className="group flex items-start gap-5 py-6 hover:bg-brand-subtle/20 -mx-4 px-4
+                             transition-colors duration-150 rounded-lg"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2.5 mb-2">
+                      <span className={`tech-badge text-xs ${cat.color}`}>{cat.label}</span>
+                      <span className={`flex items-center gap-1.5 text-xs font-medium ${st.color.split(' ')[0]}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
+                        {st.label}
+                      </span>
+                    </div>
+                    <h2 className="font-display font-semibold text-lg mb-1 group-hover:text-brand-accent transition-colors duration-150">
+                      {project.title}
+                    </h2>
+                    <p className="text-brand-muted text-sm leading-relaxed line-clamp-2 mb-3">
+                      {project.shortDescription}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {project.techStack.slice(0, 5).map((tech) => (
+                        <span key={tech} className="tech-badge">{tech}</span>
+                      ))}
+                      {project.techStack.length > 5 && (
+                        <span className="tech-badge">+{project.techStack.length - 5}</span>
+                      )}
+                    </div>
                   </div>
-                ) : (
-                  <div className={`h-1 flex-shrink-0 ${cat.bar}`} />
-                )}
-
-                <div className="p-6 flex flex-col flex-1">
-                  {/* Category + Status */}
-                  <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <span className={`tech-badge ${cat.color}`}>{cat.label}</span>
-                    <span className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
-                      <span className={`text-xs font-medium ${st.color.split(' ')[0]}`}>{st.label}</span>
-                    </span>
-                  </div>
-
-                  {/* Title */}
-                  <h2 className="text-xl font-bold mb-1 group-hover:text-brand-accent transition-colors">
-                    {project.title}
-                  </h2>
-                  <p className="text-brand-muted text-xs mb-3">{project.subtitle}</p>
-                  <p className="text-slate-400 text-sm leading-relaxed flex-1 line-clamp-3">
-                    {project.shortDescription}
-                  </p>
-
-                  {/* Tech stack */}
-                  <div className="flex flex-wrap gap-1.5 mt-4 mb-5">
-                    {project.techStack.slice(0, 5).map((tech) => (
-                      <span key={tech} className="tech-badge">{tech}</span>
-                    ))}
-                    {project.techStack.length > 5 && (
-                      <span className="tech-badge">+{project.techStack.length - 5}</span>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-3 pt-4 border-t border-brand-border">
-                    <Link
-                      to={`/projects/${project.id}`}
-                      className="flex items-center gap-1.5 text-sm font-medium text-brand-accent hover:underline"
-                    >
-                      View Details <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                    {project.githubUrl && (
-                      <a
-                        href={project.githubUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="GitHub repo"
-                        className="ml-auto text-brand-muted hover:text-[var(--color-text)] transition-colors"
-                      >
-                        <GithubIcon className="w-4 h-4" />
-                      </a>
-                    )}
-                    {project.demoUrl && project.demoUrl !== '#' && (
-                      <a
-                        href={project.demoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="Live demo"
-                        className={`text-brand-muted hover:text-brand-accent transition-colors ${project.githubUrl ? '' : 'ml-auto'}`}
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </motion.article>
+                  <ArrowRight className="w-4 h-4 text-brand-muted group-hover:text-brand-accent group-hover:translate-x-1 transition-all duration-150 flex-shrink-0 mt-1" />
+                </Link>
+              </motion.div>
             )
           })}
         </div>
 
         {filtered.length === 0 && (
           <div className="text-center py-20 text-brand-muted">
-            <p className="text-lg mb-2">No projects match those filters.</p>
+            <p className="text-lg font-display mb-3">No projects match those filters.</p>
             <button
               onClick={() => { setCategory('all'); setStatus('all'); setSearch('') }}
-              className="text-brand-accent hover:underline text-sm"
+              className="text-brand-accent text-sm hover:underline font-mono"
             >
               Clear filters
             </button>

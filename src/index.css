@@ -4,35 +4,37 @@
 
 @layer base {
   :root {
-    --brand-bg:           #030710;
-    --brand-surface:      #07101f;
-    --brand-border:       #162040;
-    --brand-accent:       #00d4ff;
-    --brand-accent-hover: #00b8e0;
-    --brand-purple:       #9d6ff7;
-    --brand-purple-hover: #8b5cf6;
-    --brand-gold:         #f59e0b;
-    --brand-muted:        #7a8fb0;
-    --brand-subtle:       #0d1a30;
-    --color-text:         #e8f0ff;
-    --scrollbar-thumb:    #162040;
-    --scrollbar-track:    #030710;
+    --brand-bg:           #06080f;
+    --brand-surface:      #0b0e18;
+    --brand-border:       #1c2235;
+    --brand-accent:       #c9a84c;
+    --brand-accent-hover: #b8942e;
+    --brand-signal:       #4b9cf5;
+    --brand-signal-hover: #2d7fd4;
+    --brand-emerald:      #2ecf8e;
+    --brand-gold:         #c9a84c;
+    --brand-muted:        #6b7a96;
+    --brand-subtle:       #0e1220;
+    --color-text:         #d4cfc8;
+    --scrollbar-thumb:    #1c2235;
+    --scrollbar-track:    #06080f;
   }
 
   .light {
-    --brand-bg:           #f0f4f8;
+    --brand-bg:           #f5f3ef;
     --brand-surface:      #ffffff;
-    --brand-border:       #dde3ef;
-    --brand-accent:       #0891b2;
-    --brand-accent-hover: #0e7490;
-    --brand-purple:       #7c3aed;
-    --brand-purple-hover: #6d28d9;
-    --brand-gold:         #d97706;
-    --brand-muted:        #64748b;
-    --brand-subtle:       #e8eef5;
-    --color-text:         #0f172a;
-    --scrollbar-thumb:    #cbd5e1;
-    --scrollbar-track:    #f0f4f8;
+    --brand-border:       #e2ddd6;
+    --brand-accent:       #9a7a28;
+    --brand-accent-hover: #7d6520;
+    --brand-signal:       #1d6fc4;
+    --brand-signal-hover: #155fa8;
+    --brand-emerald:      #1a9e6a;
+    --brand-gold:         #9a7a28;
+    --brand-muted:        #7a6e5c;
+    --brand-subtle:       #ede9e2;
+    --color-text:         #1a1612;
+    --scrollbar-thumb:    #c9c0b5;
+    --scrollbar-track:    #f5f3ef;
   }
 
   * {
@@ -49,18 +51,26 @@
     background-color: var(--brand-bg);
     color: var(--color-text);
     @apply font-sans antialiased;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
   }
 }
 
 @layer components {
-  /* Gradient text — cyan → violet */
+  /* Gradient text — gold → amber */
   .gradient-text {
-    @apply bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent;
+    background: linear-gradient(135deg, #c9a84c, #e8c97a, #b8942e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  /* Gold gradient text */
-  .gradient-text-gold {
-    @apply bg-gradient-to-r from-amber-300 to-yellow-500 bg-clip-text text-transparent;
+  /* Signal blue gradient text */
+  .gradient-text-signal {
+    @apply bg-gradient-to-r from-blue-400 to-sky-300 bg-clip-text text-transparent;
   }
 
   /* Glass card */
@@ -105,13 +115,13 @@
 
   /* Primary button */
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold
-           bg-brand-accent text-brand-bg transition-all duration-200
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold font-sans
+           bg-brand-accent text-[#06080f] transition-all duration-200
            hover:bg-brand-accent-hover hover:scale-[1.02] active:scale-[0.98];
-    box-shadow: 0 8px 24px -4px color-mix(in srgb, var(--brand-accent) 35%, transparent);
+    box-shadow: 0 6px 20px -4px color-mix(in srgb, var(--brand-accent) 40%, transparent);
   }
   .btn-primary:hover {
-    box-shadow: 0 8px 32px -4px color-mix(in srgb, var(--brand-accent) 55%, transparent);
+    box-shadow: 0 8px 28px -4px color-mix(in srgb, var(--brand-accent) 60%, transparent);
   }
 
   /* Secondary button */
@@ -123,65 +133,71 @@
     color: var(--color-text);
   }
 
-  /* Glow number — for stats */
+  /* Stat number */
   .stat-number {
-    @apply font-bold tabular-nums;
-    text-shadow: 0 0 20px color-mix(in srgb, var(--brand-accent) 60%, transparent);
+    @apply font-display font-bold tabular-nums;
+  }
+
+  /* Underline-only input for Contact form */
+  .input-underline {
+    @apply w-full bg-transparent border-0 border-b border-brand-border
+           py-3 text-sm text-[var(--color-text)]
+           focus:outline-none transition-colors duration-200;
+    border-bottom-color: var(--brand-border);
+  }
+  .input-underline::placeholder {
+    color: color-mix(in srgb, var(--brand-muted) 50%, transparent);
+  }
+  .input-underline:focus {
+    border-bottom-color: var(--brand-accent);
   }
 }
 
 /* ── Backgrounds ──────────────────────────────────────────── */
 
-.animated-gradient {
-  background: linear-gradient(
-    135deg,
-    #030710 0%,
-    #04091a 20%,
-    #030812 40%,
-    #050b18 60%,
-    #03091a 80%,
-    #030710 100%
+/* Hero — subtle horizontal rules like a terminal/ledger */
+.hero-bg {
+  background: var(--brand-bg);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 47px,
+    color-mix(in srgb, var(--brand-accent) 5%, transparent) 48px
   );
-  background-size: 300% 300%;
-  animation: gradient-x 18s ease infinite;
 }
 
-.light .animated-gradient {
-  background: linear-gradient(135deg, #eef2f8 0%, #e6eef8 30%, #f0f4f8 60%, #f8faff 100%);
-  background-size: 300% 300%;
-  animation: gradient-x 18s ease infinite;
+.light .hero-bg {
+  background: var(--brand-bg);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 47px,
+    color-mix(in srgb, var(--brand-accent) 8%, transparent) 48px
+  );
 }
 
 /* Dot grid overlay */
 .dot-grid {
   background-image: radial-gradient(
     circle,
-    color-mix(in srgb, var(--brand-accent) 22%, transparent) 1px,
+    color-mix(in srgb, var(--brand-accent) 18%, transparent) 1px,
     transparent 1px
   );
   background-size: 28px 28px;
 }
 
-/* Blueprint grid — grid lines + bright dots at intersections */
+/* Blueprint grid — kept for About banner only */
 .blueprint-grid {
   background-image:
-    linear-gradient(rgba(0, 212, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 212, 255, 0.035) 1px, transparent 1px),
-    radial-gradient(circle, rgba(0, 212, 255, 0.22) 1.5px, transparent 1.5px);
+    linear-gradient(color-mix(in srgb, var(--brand-accent) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--brand-accent) 4%, transparent) 1px, transparent 1px),
+    radial-gradient(circle, color-mix(in srgb, var(--brand-accent) 20%, transparent) 1.5px, transparent 1.5px);
   background-size: 48px 48px;
 }
 
 /* Light theme overrides */
 .light .text-white   { color: var(--color-text); }
-.light .text-slate-400 { color: #475569; }
-
-.light .blueprint-grid {
-  background-image:
-    linear-gradient(rgba(8, 145, 178, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(8, 145, 178, 0.06) 1px, transparent 1px),
-    radial-gradient(circle, rgba(8, 145, 178, 0.18) 1.5px, transparent 1.5px);
-  background-size: 48px 48px;
-}
+.light .text-slate-400 { color: #5c5346; }
 
 /* Profile photo decorative rings */
 .profile-ring         { animation: spin-ring 28s linear infinite; }

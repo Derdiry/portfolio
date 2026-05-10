@@ -92,7 +92,7 @@ export default function AdminDashboard() {
           label="Total Views"
           value={data.total_views.toLocaleString()}
           icon={Eye}
-          color="bg-cyan-500/20"
+          color="bg-brand-accent/20"
         />
         <StatCard
           label="Unique Visitors"

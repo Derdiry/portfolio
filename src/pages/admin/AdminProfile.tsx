@@ -95,7 +95,7 @@ function QrCard({ label, value, filename }: QrCardProps) {
       <button
         type="button"
         onClick={() => downloadQr(wrapperRef, filename)}
-        className="flex items-center gap-1 text-xs text-brand-accent hover:text-cyan-300 transition-colors"
+        className="flex items-center gap-1 text-xs text-brand-accent hover:text-brand-accent/70 transition-colors"
       >
         <Download className="w-3 h-3" />
         Download
@@ -115,6 +115,7 @@ export default function AdminProfile() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const resumeInputRef = useRef<HTMLInputElement>(null)
 
   // Resume state
   const [uploadingResume, setUploadingResume] = useState(false)
@@ -365,15 +366,15 @@ export default function AdminProfile() {
               accept="image/*"
               onChange={handleFileChange}
               className="hidden"
-              id="photo-upload"
             />
-            <label
-              htmlFor="photo-upload"
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
               className="btn-secondary flex items-center gap-2 cursor-pointer"
             >
               <Upload className="w-4 h-4" />
               {uploading ? 'Uploading…' : 'Upload Photo'}
-            </label>
+            </button>
             <p className="text-xs text-brand-muted text-center">
               Accepts any image. Auto-cropped to 400×400 square.
             </p>
@@ -410,19 +411,20 @@ export default function AdminProfile() {
             </div>
 
             <input
+              ref={resumeInputRef}
               type="file"
               accept=".pdf"
               onChange={handleResumeChange}
               className="hidden"
-              id="resume-upload"
             />
-            <label
-              htmlFor="resume-upload"
+            <button
+              type="button"
+              onClick={() => resumeInputRef.current?.click()}
               className="btn-secondary flex items-center gap-2 cursor-pointer justify-center"
             >
               <Upload className="w-4 h-4" />
               {uploadingResume ? 'Uploading…' : 'Upload PDF'}
-            </label>
+            </button>
 
             <p className="text-xs text-brand-muted text-center">
               Current resume served at /uploads/resume.pdf
