@@ -8,11 +8,11 @@ import ProtectedRoute from '@/components/admin/ProtectedRoute'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Home from '@/pages/Home'
-import Projects from '@/pages/Projects'
-import ProjectDetail from '@/pages/ProjectDetail'
-import About from '@/pages/About'
-import Resume from '@/pages/Resume'
-import Contact from '@/pages/Contact'
+const Projects     = lazy(() => import('@/pages/Projects'))
+const ProjectDetail = lazy(() => import('@/pages/ProjectDetail'))
+const About        = lazy(() => import('@/pages/About'))
+const Resume       = lazy(() => import('@/pages/Resume'))
+const Contact      = lazy(() => import('@/pages/Contact'))
 import { logPageView } from '@/lib/api'
 
 const AdminLogin     = lazy(() => import('@/pages/admin/AdminLogin'))

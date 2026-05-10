@@ -5,13 +5,16 @@ import { PROJECTS as FALLBACK_PROJECTS } from '@/data/projects'
 import { useApi } from '@/hooks/useApi'
 import { getProfile, getProjects, getExperience, getEducation, getSkills, mapProject, mapExperience, mapEducation, getResumeUrl } from '@/lib/api'
 import Seo from '@/components/Seo'
+import PageSkeleton from '@/components/PageSkeleton'
 
 export default function Resume() {
-  const { data: apiProfile    } = useApi(getProfile)
-  const { data: apiProjects   } = useApi(getProjects)
-  const { data: apiExperience } = useApi(getExperience)
-  const { data: apiEducation  } = useApi(getEducation)
-  const { data: apiSkills     } = useApi(getSkills)
+  const { data: apiProfile,    loading } = useApi(getProfile)
+  const { data: apiProjects            } = useApi(getProjects)
+  const { data: apiExperience          } = useApi(getExperience)
+  const { data: apiEducation           } = useApi(getEducation)
+  const { data: apiSkills              } = useApi(getSkills)
+
+  if (loading && !apiProfile) return <PageSkeleton />
 
   const profile    = apiProfile    ?? PROFILE
   const allProjects = apiProjects ? apiProjects.map(mapProject) : FALLBACK_PROJECTS
@@ -35,7 +38,7 @@ export default function Resume() {
         >
           <div>
             <p className="text-brand-accent font-mono text-sm mb-1">// resume</p>
-            <h1 className="text-3xl font-bold text-white">Curriculum Vitae</h1>
+            <h1 className="text-3xl font-bold">Curriculum Vitae</h1>
           </div>
           <a
             href={getResumeUrl()}
@@ -56,7 +59,7 @@ export default function Resume() {
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-brand-accent/10 to-blue-500/10 border-b border-brand-border p-8">
-            <h2 className="text-3xl font-bold text-white mb-1">{profile.name}</h2>
+            <h2 className="text-3xl font-bold mb-1">{profile.name}</h2>
             <p className="text-brand-accent text-lg mb-4">{profile.title}</p>
             <div className="flex flex-wrap gap-4 text-sm text-brand-muted">
               <a href={`mailto:${profile.email}`} className="hover:text-brand-accent transition-colors">
@@ -91,7 +94,7 @@ export default function Resume() {
               </h3>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-white font-semibold text-sm">{profile.patent.number}</p>
+                  <p className="font-semibold text-sm">{profile.patent.number}</p>
                   <p className="text-slate-400 text-sm">{profile.patent.title}</p>
                 </div>
                 <span className="flex-shrink-0 text-xs font-mono text-amber-400 bg-amber-400/10 px-2 py-1 rounded">
@@ -110,7 +113,7 @@ export default function Resume() {
                   <div key={exp.id}>
                     <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                       <div>
-                        <p className="text-white font-semibold">{exp.role}</p>
+                        <p className="font-semibold">{exp.role}</p>
                         <p className="text-brand-accent text-sm">{exp.company} · {exp.location}</p>
                       </div>
                       <p className="text-brand-muted text-xs font-mono">
@@ -139,7 +142,7 @@ export default function Resume() {
                 {topProjects.map((p) => (
                   <div key={p.id}>
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <p className="text-white font-semibold">{p.title}</p>
+                      <p className="font-semibold">{p.title}</p>
                       <span className="flex-shrink-0 text-xs font-mono text-brand-muted">{p.techStack.slice(0, 3).join(', ')}</span>
                     </div>
                     <p className="text-slate-400 text-sm leading-relaxed line-clamp-2">{p.shortDescription}</p>
@@ -160,7 +163,7 @@ export default function Resume() {
                 {education.map((edu) => (
                   <div key={edu.id} className="flex flex-wrap items-start justify-between gap-2">
                     <div>
-                      <p className="text-white font-semibold">{edu.degree} in {edu.field}</p>
+                      <p className="font-semibold">{edu.degree} in {edu.field}</p>
                       <p className="text-brand-accent text-sm">{edu.school} · {edu.location}</p>
                     </div>
                     <p className="text-brand-muted text-xs font-mono">

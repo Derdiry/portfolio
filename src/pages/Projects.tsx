@@ -1,11 +1,13 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Github, ExternalLink, ArrowRight, Search } from 'lucide-react'
+import { ExternalLink, ArrowRight, Search } from 'lucide-react'
+import GithubIcon from '@/components/icons/GithubIcon'
 import { PROJECTS as FALLBACK_PROJECTS } from '@/data/projects'
 import { CATEGORY_META, STATUS_META, ALL_CATEGORIES } from '@/components/projects/meta'
 import type { ProjectCategory, ProjectStatus } from '@/types'
 import Seo from '@/components/Seo'
+import PageSkeleton from '@/components/PageSkeleton'
 import { useApi } from '@/hooks/useApi'
 import { getProjects, mapProject, getPhotoUrl } from '@/lib/api'
 
@@ -16,7 +18,10 @@ export default function Projects() {
   const [status, setStatus]     = useState<StatusFilter>('all')
   const [search, setSearch]     = useState('')
 
-  const { data: apiProjects } = useApi(getProjects)
+  const { data: apiProjects, loading } = useApi(getProjects)
+
+  if (loading && !apiProjects) return <PageSkeleton />
+
   const allProjects = useMemo(
     () => apiProjects?.map(mapProject) ?? FALLBACK_PROJECTS,
     [apiProjects]
@@ -195,7 +200,7 @@ export default function Projects() {
                         aria-label="GitHub repo"
                         className="ml-auto text-brand-muted hover:text-[var(--color-text)] transition-colors"
                       >
-                        <Github className="w-4 h-4" />
+                        <GithubIcon className="w-4 h-4" />
                       </a>
                     )}
                     {project.demoUrl && project.demoUrl !== '#' && (

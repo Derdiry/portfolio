@@ -5,13 +5,14 @@ interface SeoProps {
   description: string
   path?: string
   type?: 'website' | 'profile' | 'article'
+  structuredData?: Record<string, unknown>
 }
 
 const SITE = 'Mohamed Alderdiry'
-const BASE_URL = 'https://mywebsite-tawny-tau.vercel.app'
+const BASE_URL = 'https://moderdiry.com'
 const OG_IMAGE = `${BASE_URL}/og-image.jpg`
 
-export default function Seo({ title, description, path = '', type = 'website' }: SeoProps) {
+export default function Seo({ title, description, path = '', type = 'website', structuredData }: SeoProps) {
   const fullTitle = path === '' ? `${SITE} — Applied ML Engineer` : `${title} | ${SITE}`
   const url = `${BASE_URL}${path}`
 
@@ -32,6 +33,12 @@ export default function Seo({ title, description, path = '', type = 'website' }:
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={OG_IMAGE} />
+
+      {structuredData && (
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
+      )}
     </Helmet>
   )
 }

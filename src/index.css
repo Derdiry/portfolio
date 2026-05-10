@@ -4,18 +4,19 @@
 
 @layer base {
   :root {
-    --brand-bg:           #070b14;
-    --brand-surface:      #0d1117;
-    --brand-border:       #1a2035;
-    --brand-accent:       #06b6d4;
-    --brand-accent-hover: #0891b2;
-    --brand-purple:       #8b5cf6;
-    --brand-purple-hover: #7c3aed;
-    --brand-muted:        #94a3b8;
-    --brand-subtle:       #111827;
-    --color-text:         #f1f5f9;
-    --scrollbar-thumb:    #1e2333;
-    --scrollbar-track:    #070b14;
+    --brand-bg:           #030710;
+    --brand-surface:      #07101f;
+    --brand-border:       #162040;
+    --brand-accent:       #00d4ff;
+    --brand-accent-hover: #00b8e0;
+    --brand-purple:       #9d6ff7;
+    --brand-purple-hover: #8b5cf6;
+    --brand-gold:         #f59e0b;
+    --brand-muted:        #7a8fb0;
+    --brand-subtle:       #0d1a30;
+    --color-text:         #e8f0ff;
+    --scrollbar-thumb:    #162040;
+    --scrollbar-track:    #030710;
   }
 
   .light {
@@ -26,6 +27,7 @@
     --brand-accent-hover: #0e7490;
     --brand-purple:       #7c3aed;
     --brand-purple-hover: #6d28d9;
+    --brand-gold:         #d97706;
     --brand-muted:        #64748b;
     --brand-subtle:       #e8eef5;
     --color-text:         #0f172a;
@@ -51,17 +53,32 @@
 }
 
 @layer components {
-  /* Gradient text — cyan → blue → violet */
+  /* Gradient text — cyan → violet */
   .gradient-text {
-    @apply bg-gradient-to-r from-cyan-400 via-blue-400 to-violet-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent;
+  }
+
+  /* Gold gradient text */
+  .gradient-text-gold {
+    @apply bg-gradient-to-r from-amber-300 to-yellow-500 bg-clip-text text-transparent;
   }
 
   /* Glass card */
   .glass {
     background-color: color-mix(in srgb, var(--brand-surface) 70%, transparent);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--brand-border);
+  }
+
+  /* Premium gradient-border card */
+  .card-premium {
+    background:
+      linear-gradient(var(--brand-surface), var(--brand-surface)) padding-box,
+      linear-gradient(135deg, var(--brand-accent), var(--brand-purple)) border-box;
+    border: 1px solid transparent;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   /* Section padding */
@@ -81,7 +98,6 @@
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono
            bg-brand-subtle border border-brand-border text-brand-muted
            transition-colors hover:text-brand-accent;
-    border-color: var(--brand-border);
   }
   .tech-badge:hover {
     border-color: color-mix(in srgb, var(--brand-accent) 50%, transparent);
@@ -92,10 +108,10 @@
     @apply inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold
            bg-brand-accent text-brand-bg transition-all duration-200
            hover:bg-brand-accent-hover hover:scale-[1.02] active:scale-[0.98];
-    box-shadow: 0 8px 20px -4px color-mix(in srgb, var(--brand-accent) 30%, transparent);
+    box-shadow: 0 8px 24px -4px color-mix(in srgb, var(--brand-accent) 35%, transparent);
   }
   .btn-primary:hover {
-    box-shadow: 0 8px 28px -4px color-mix(in srgb, var(--brand-accent) 50%, transparent);
+    box-shadow: 0 8px 32px -4px color-mix(in srgb, var(--brand-accent) 55%, transparent);
   }
 
   /* Secondary button */
@@ -106,6 +122,12 @@
            active:scale-[0.98];
     color: var(--color-text);
   }
+
+  /* Glow number — for stats */
+  .stat-number {
+    @apply font-bold tabular-nums;
+    text-shadow: 0 0 20px color-mix(in srgb, var(--brand-accent) 60%, transparent);
+  }
 }
 
 /* ── Backgrounds ──────────────────────────────────────────── */
@@ -113,62 +135,66 @@
 .animated-gradient {
   background: linear-gradient(
     135deg,
-    #070b14 0%,
-    #090d1e 20%,
-    #080b18 40%,
-    #0a0d1c 60%,
-    #090c1a 80%,
-    #070b14 100%
+    #030710 0%,
+    #04091a 20%,
+    #030812 40%,
+    #050b18 60%,
+    #03091a 80%,
+    #030710 100%
   );
   background-size: 300% 300%;
-  animation: gradient-x 14s ease infinite;
+  animation: gradient-x 18s ease infinite;
 }
 
 .light .animated-gradient {
   background: linear-gradient(135deg, #eef2f8 0%, #e6eef8 30%, #f0f4f8 60%, #f8faff 100%);
   background-size: 300% 300%;
-  animation: gradient-x 14s ease infinite;
+  animation: gradient-x 18s ease infinite;
 }
 
-/* Dot grid overlay — use on a position:absolute child */
+/* Dot grid overlay */
 .dot-grid {
   background-image: radial-gradient(
     circle,
-    color-mix(in srgb, var(--brand-accent) 20%, transparent) 1px,
+    color-mix(in srgb, var(--brand-accent) 22%, transparent) 1px,
     transparent 1px
   );
   background-size: 28px 28px;
+}
+
+/* Blueprint grid — grid lines + bright dots at intersections */
+.blueprint-grid {
+  background-image:
+    linear-gradient(rgba(0, 212, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.035) 1px, transparent 1px),
+    radial-gradient(circle, rgba(0, 212, 255, 0.22) 1.5px, transparent 1.5px);
+  background-size: 48px 48px;
 }
 
 /* Light theme overrides */
 .light .text-white   { color: var(--color-text); }
 .light .text-slate-400 { color: #475569; }
 
-/* Noise overlay */
-.noise::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  pointer-events: none;
-  opacity: 0.4;
+.light .blueprint-grid {
+  background-image:
+    linear-gradient(rgba(8, 145, 178, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(8, 145, 178, 0.06) 1px, transparent 1px),
+    radial-gradient(circle, rgba(8, 145, 178, 0.18) 1.5px, transparent 1.5px);
+  background-size: 48px 48px;
 }
 
 /* Profile photo decorative rings */
 .profile-ring         { animation: spin-ring 28s linear infinite; }
 .profile-ring-reverse { animation: spin-ring 20s linear infinite reverse; }
 
-/* Scroll fade-in utility */
-.fade-in-up { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
-.fade-in-up.visible { opacity: 1; transform: translateY(0); }
+/* Floating geo shapes */
+.geo-float-a { animation: float-a 9s ease-in-out infinite; }
+.geo-float-b { animation: float-b 12s ease-in-out infinite; }
+.geo-float-c { animation: float-c 7s ease-in-out infinite; }
+.geo-float-d { animation: float-d 15s ease-in-out infinite; }
 
-/* Stagger children */
-.stagger > *:nth-child(1) { transition-delay: 0ms; }
-.stagger > *:nth-child(2) { transition-delay: 80ms; }
-.stagger > *:nth-child(3) { transition-delay: 160ms; }
-.stagger > *:nth-child(4) { transition-delay: 240ms; }
-.stagger > *:nth-child(5) { transition-delay: 320ms; }
-.stagger > *:nth-child(6) { transition-delay: 400ms; }
+
+/* ── Keyframes ─────────────────────────────────────────────── */
 
 @keyframes gradient-x {
   0%, 100% { background-position: 0% 50%; }
@@ -178,4 +204,26 @@
 @keyframes spin-ring {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+@keyframes float-a {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-18px) rotate(6deg); }
+  66%       { transform: translateY(8px) rotate(-4deg); }
+}
+
+@keyframes float-b {
+  0%, 100% { transform: translateY(0px) rotate(45deg); }
+  50%       { transform: translateY(-26px) rotate(52deg); }
+}
+
+@keyframes float-c {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(18px) scale(1.06); }
+}
+
+@keyframes float-d {
+  0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+  25%       { transform: translateY(-12px) rotate(-8deg) scale(1.04); }
+  75%       { transform: translateY(14px) rotate(5deg) scale(0.96); }
 }

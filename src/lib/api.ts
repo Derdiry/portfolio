@@ -9,9 +9,10 @@ import type {
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const { headers: extraHeaders, ...restOptions } = options ?? {}
   const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    ...options,
+    ...restOptions,
+    headers: { 'Content-Type': 'application/json', ...extraHeaders },
   })
   if (!res.ok) {
     const body = await res.text()
@@ -208,7 +209,7 @@ export const adminUploadScreenshot = (projectId: string, file: File) => {
   form.append('file', file)
   return request<ApiProject>(`/api/admin/projects/${projectId}/screenshots`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+    headers: authHeader(),
     body: form,
   })
 }
@@ -216,7 +217,7 @@ export const adminUploadScreenshot = (projectId: string, file: File) => {
 export const adminDeleteScreenshot = (projectId: string, filename: string) =>
   request<ApiProject>(`/api/admin/projects/${projectId}/screenshots/${filename}`, {
     method: 'DELETE',
-    headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+    headers: authHeader(),
   })
 
 export function mapExperience(e: ApiExperience): Experience {
@@ -321,7 +322,7 @@ export const getPhotoUrl = (photo_url: string | null): string | null => {
 
 export const getResumeUrl = () => `${BASE}/uploads/resume.pdf`
 
-export const adminUploadResume = async (file: File): Promise<{ photo_url: string }> => {
+export const adminUploadResume = async (file: File): Promise<{ resume_url: string }> => {
   const token = localStorage.getItem('admin_token')
   const formData = new FormData()
   formData.append('file', file)

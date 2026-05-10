@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, Phone, Linkedin, Github, MapPin, Clock, Send, CheckCircle } from 'lucide-react'
+import { Mail, Phone, Linkedin, MapPin, Clock, Send, CheckCircle } from 'lucide-react'
+import GithubIcon from '@/components/icons/GithubIcon'
 import { PROFILE } from '@/data/profile'
 import { sendContact } from '@/lib/api'
 import Seo from '@/components/Seo'
@@ -51,13 +52,21 @@ export default function Contact() {
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [key]: e.target.value })),
     className: `w-full px-4 py-3 rounded-lg bg-brand-subtle border text-white text-sm
-                 placeholder:text-brand-muted transition-colors focus:outline-none
-                 ${errors[key] ? 'border-red-500 focus:border-red-400' : 'border-brand-border focus:border-brand-accent'}`,
+                 placeholder:text-brand-muted transition-all duration-200 focus:outline-none
+                 ${errors[key]
+                   ? 'border-red-500 focus:border-red-400'
+                   : 'border-brand-border focus:border-brand-accent focus:shadow-[0_0_0_3px_rgba(0,212,255,0.08)]'
+                 }`,
   })
 
   return (
-    <div className="pt-24 pb-20">
+    <div className="pt-24 pb-20 relative">
       <Seo title="Contact" description="Get in touch with Mohamed Alderdiry for ML engineering roles, research collaborations, and interesting problems." path="/contact" />
+
+      {/* Background accent blobs */}
+      <div className="pointer-events-none absolute top-0 left-1/4 w-96 h-96 rounded-full bg-brand-accent/5 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-brand-purple/5 blur-3xl" />
+
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
@@ -67,7 +76,7 @@ export default function Contact() {
           className="mb-12"
         >
           <p className="text-brand-accent font-mono text-sm mb-2">// get in touch</p>
-          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Contact</h1>
+          <h1 className="text-4xl sm:text-5xl font-bold mb-4">Contact</h1>
           <p className="text-brand-muted max-w-md">
             Open to ML engineering roles, research collaborations, and interesting problems.
           </p>
@@ -79,17 +88,19 @@ export default function Contact() {
             initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="lg:col-span-2 space-y-6"
+            className="lg:col-span-2 space-y-4"
           >
             {/* Info cards */}
             {[
-              { icon: Mail,     label: 'Email',    value: PROFILE.email,    href: `mailto:${PROFILE.email}` },
-              { icon: Phone,    label: 'Phone',    value: PROFILE.phone,    href: `tel:${PROFILE.phone}` },
-              { icon: MapPin,   label: 'Location', value: PROFILE.location, href: undefined },
-              { icon: Clock,    label: 'Timezone', value: 'AST (UTC+3)',    href: undefined },
+              { icon: Mail,   label: 'Email',    value: PROFILE.email,    href: `mailto:${PROFILE.email}` },
+              { icon: Phone,  label: 'Phone',    value: PROFILE.phone,    href: `tel:${PROFILE.phone}` },
+              { icon: MapPin, label: 'Location', value: PROFILE.location, href: undefined },
+              { icon: Clock,  label: 'Timezone', value: 'AST (UTC+3)',    href: undefined },
             ].map(({ icon: Icon, label, value, href }) => (
-              <div key={label} className="glass rounded-xl p-4 flex items-start gap-3">
-                <div className="w-9 h-9 rounded-lg bg-brand-accent/10 flex items-center justify-center flex-shrink-0">
+              <div key={label} className="glass rounded-xl p-4 flex items-start gap-3
+                                          hover:border-brand-accent/30 transition-colors duration-300 group">
+                <div className="w-9 h-9 rounded-lg bg-brand-accent/10 flex items-center justify-center flex-shrink-0
+                                group-hover:bg-brand-accent/20 transition-colors duration-300">
                   <Icon className="w-4 h-4 text-brand-accent" />
                 </div>
                 <div>
@@ -106,47 +117,34 @@ export default function Contact() {
             ))}
 
             {/* Social */}
-            <div className="glass rounded-xl p-4">
-              <p className="text-brand-muted text-xs mb-3">Profiles</p>
+            <div className="card-premium rounded-xl p-5">
+              <p className="text-brand-muted text-xs mb-4">Profiles</p>
               <div className="space-y-3">
                 <a
                   href={`https://${PROFILE.linkedin}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-brand-muted hover:text-brand-accent transition-colors text-sm"
+                  className="flex items-center gap-3 text-brand-muted hover:text-brand-accent transition-colors text-sm group"
                 >
-                  <Linkedin className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded-lg bg-brand-subtle flex items-center justify-center
+                                  group-hover:bg-brand-accent/10 transition-colors duration-200">
+                    <Linkedin className="w-3.5 h-3.5" />
+                  </div>
                   {PROFILE.linkedin}
                 </a>
                 <a
                   href={`https://${PROFILE.github}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-brand-muted hover:text-brand-accent transition-colors text-sm"
+                  className="flex items-center gap-3 text-brand-muted hover:text-brand-accent transition-colors text-sm group"
                 >
-                  <Github className="w-4 h-4" />
+                  <div className="w-7 h-7 rounded-lg bg-brand-subtle flex items-center justify-center
+                                  group-hover:bg-brand-accent/10 transition-colors duration-200">
+                    <GithubIcon className="w-3.5 h-3.5" />
+                  </div>
                   {PROFILE.github}
                 </a>
               </div>
-            </div>
-
-            {/* QR placeholder */}
-            <div className="glass rounded-xl p-5">
-              <p className="text-brand-muted text-xs mb-3">QR Codes</p>
-              <div className="grid grid-cols-3 gap-2">
-                {['LinkedIn', 'Portfolio', 'vCard'].map((label) => (
-                  <div key={label} className="flex flex-col items-center gap-1.5">
-                    <div className="w-full aspect-square rounded bg-brand-subtle border border-brand-border
-                                     flex items-center justify-center">
-                      <span className="text-brand-muted text-xs font-mono">QR</span>
-                    </div>
-                    <span className="text-brand-muted text-xs">{label}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-brand-muted text-xs mt-3 text-center font-mono">
-                QR generation — Phase 3
-              </p>
             </div>
           </motion.div>
 
@@ -157,7 +155,7 @@ export default function Contact() {
             transition={{ duration: 0.5, delay: 0.15 }}
             className="lg:col-span-3"
           >
-            <div className="glass rounded-xl p-8">
+            <div className="card-premium rounded-xl p-8">
               {submitted ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30
@@ -165,7 +163,7 @@ export default function Contact() {
                     <CheckCircle className="w-8 h-8 text-green-400" />
                   </div>
                   <div>
-                    <h3 className="text-white font-semibold text-lg mb-2">Message sent!</h3>
+                    <h3 className="font-semibold text-lg mb-2">Message sent!</h3>
                     <p className="text-brand-muted text-sm">
                       I'll get back to you as soon as possible.
                     </p>
@@ -179,7 +177,7 @@ export default function Contact() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} noValidate className="space-y-5">
-                  <h2 className="text-white font-semibold text-lg mb-6">Send a Message</h2>
+                  <h2 className="font-semibold text-lg mb-6">Send a Message</h2>
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
@@ -234,7 +232,6 @@ export default function Contact() {
                       </>
                     )}
                   </button>
-
                 </form>
               )}
             </div>

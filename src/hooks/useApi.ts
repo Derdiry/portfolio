@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 export interface UseApiState<T> {
   data: T | null
@@ -16,15 +16,18 @@ export function useApi<T>(
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
+  const fetcherRef = useRef(fetcher)
+  fetcherRef.current = fetcher
+
   const refetch = useCallback(() => setTick((t) => t + 1), [])
 
   useEffect(() => {
-    if (!fetcher) return
+    if (!fetcherRef.current) return
     let cancelled = false
     setLoading(true)
     setError(null)
 
-    fetcher()
+    fetcherRef.current()
       .then((result) => {
         if (!cancelled) {
           setData(result)

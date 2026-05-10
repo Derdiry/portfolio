@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Github, ExternalLink, CheckCircle2, AlertCircle, BarChart2, X } from 'lucide-react'
+import { ArrowLeft, ExternalLink, CheckCircle2, AlertCircle, BarChart2, X } from 'lucide-react'
+import GithubIcon from '@/components/icons/GithubIcon'
 import { getProjectById } from '@/data/projects'
 import { CATEGORY_META, STATUS_META } from '@/components/projects/meta'
 import Seo from '@/components/Seo'
@@ -76,7 +77,7 @@ export default function ProjectDetail() {
                 rel="noopener noreferrer"
                 className="btn-secondary text-sm py-2 px-4"
               >
-                <Github className="w-4 h-4" /> View Code
+                <GithubIcon className="w-4 h-4" /> View Code
               </a>
             )}
             {project.demoUrl && project.demoUrl !== '#' && (
