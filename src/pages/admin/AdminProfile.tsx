@@ -377,11 +377,19 @@ export default function AdminProfile() {
               )}
             </div>
 
-            <label className={`btn-secondary flex items-center gap-2 cursor-pointer ${uploading ? 'opacity-60 pointer-events-none' : ''}`}>
-              <Upload className="w-4 h-4" />
-              {uploading ? 'Uploading…' : 'Upload Photo'}
-              <input ref={photoInputRef} type="file" accept="image/*" className="sr-only" />
-            </label>
+            <div className="relative">
+              <div className={`btn-secondary flex items-center gap-2 select-none ${uploading ? 'opacity-60' : ''}`}>
+                <Upload className="w-4 h-4" />
+                {uploading ? 'Uploading…' : 'Upload Photo'}
+              </div>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                disabled={uploading}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+              />
+            </div>
             <p className="text-xs text-brand-muted text-center">
               Accepts any image. Auto-cropped to 400×400 square.
             </p>
@@ -417,11 +425,19 @@ export default function AdminProfile() {
               <FileText className="w-8 h-8 text-brand-muted" />
             </div>
 
-            <label className={`btn-secondary flex items-center gap-2 justify-center w-full cursor-pointer ${uploadingResume ? 'opacity-60 pointer-events-none' : ''}`}>
-              <Upload className="w-4 h-4" />
-              {uploadingResume ? 'Uploading…' : 'Upload PDF'}
-              <input ref={resumeInputRef} type="file" accept=".pdf" className="sr-only" />
-            </label>
+            <div className="relative">
+              <div className={`btn-secondary flex items-center gap-2 justify-center w-full select-none ${uploadingResume ? 'opacity-60' : ''}`}>
+                <Upload className="w-4 h-4" />
+                {uploadingResume ? 'Uploading…' : 'Upload PDF'}
+              </div>
+              <input
+                ref={resumeInputRef}
+                type="file"
+                accept=".pdf"
+                disabled={uploadingResume}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+              />
+            </div>
 
             <p className="text-xs text-brand-muted text-center">
               Current resume served at /uploads/resume.pdf
