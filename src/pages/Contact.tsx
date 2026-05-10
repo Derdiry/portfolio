@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, Phone, Linkedin, Github, MapPin, Clock, Send, CheckCircle } from 'lucide-react'
 import { PROFILE } from '@/data/profile'
-import { sendContact } from '@/lib/api'
+import { sendContact, getProfile } from '@/lib/api'
+import { useApi } from '@/hooks/useApi'
 import Seo from '@/components/Seo'
 
 interface FormState {
@@ -15,6 +16,9 @@ interface FormState {
 const INITIAL_FORM: FormState = { name: '', email: '', subject: '', message: '' }
 
 export default function Contact() {
+  const { data: apiProfile } = useApi(getProfile)
+  const p = apiProfile ?? PROFILE
+
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -83,9 +87,9 @@ export default function Contact() {
           >
             {/* Info cards */}
             {[
-              { icon: Mail,     label: 'Email',    value: PROFILE.email,    href: `mailto:${PROFILE.email}` },
-              { icon: Phone,    label: 'Phone',    value: PROFILE.phone,    href: `tel:${PROFILE.phone}` },
-              { icon: MapPin,   label: 'Location', value: PROFILE.location, href: undefined },
+              { icon: Mail,     label: 'Email',    value: p.email,    href: `mailto:${p.email}` },
+              { icon: Phone,    label: 'Phone',    value: p.phone,    href: `tel:${p.phone}` },
+              { icon: MapPin,   label: 'Location', value: p.location, href: undefined },
               { icon: Clock,    label: 'Timezone', value: 'AST (UTC+3)',    href: undefined },
             ].map(({ icon: Icon, label, value, href }) => (
               <div key={label} className="glass rounded-xl p-4 flex items-start gap-3">
@@ -110,22 +114,22 @@ export default function Contact() {
               <p className="text-brand-muted text-xs mb-3">Profiles</p>
               <div className="space-y-3">
                 <a
-                  href={`https://${PROFILE.linkedin}`}
+                  href={`https://${p.linkedin}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-brand-muted hover:text-brand-accent transition-colors text-sm"
                 >
                   <Linkedin className="w-4 h-4" />
-                  {PROFILE.linkedin}
+                  {p.linkedin}
                 </a>
                 <a
-                  href={`https://${PROFILE.github}`}
+                  href={`https://${p.github}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-brand-muted hover:text-brand-accent transition-colors text-sm"
                 >
                   <Github className="w-4 h-4" />
-                  {PROFILE.github}
+                  {p.github}
                 </a>
               </div>
             </div>
