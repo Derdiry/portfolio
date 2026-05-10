@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom'
 import { Github, Linkedin, Mail, ArrowUp } from 'lucide-react'
 import { PROFILE } from '@/data/profile'
+import { getProfile } from '@/lib/api'
+import { useApi } from '@/hooks/useApi'
 
 export default function Footer() {
+  const { data: apiProfile } = useApi(getProfile)
+  const p = apiProfile ?? PROFILE
   const year = new Date().getFullYear()
 
   return (
@@ -43,7 +47,7 @@ export default function Footer() {
             <p className="text-white font-semibold mb-3 text-sm">Connect</p>
             <div className="flex flex-col gap-3">
               <a
-                href={`https://${PROFILE.linkedin}`}
+                href={`https://${p.linkedin}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-brand-muted hover:text-brand-accent text-sm transition-colors"
@@ -52,7 +56,7 @@ export default function Footer() {
                 LinkedIn
               </a>
               <a
-                href={`https://${PROFILE.github}`}
+                href={`https://${p.github}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-brand-muted hover:text-brand-accent text-sm transition-colors"
@@ -61,7 +65,7 @@ export default function Footer() {
                 GitHub
               </a>
               <a
-                href={`mailto:${PROFILE.email}`}
+                href={`mailto:${p.email}`}
                 className="flex items-center gap-2 text-brand-muted hover:text-brand-accent text-sm transition-colors"
               >
                 <Mail className="w-4 h-4" />
