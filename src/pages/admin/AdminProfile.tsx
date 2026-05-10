@@ -1,5 +1,5 @@
 import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { Download, FileText, Upload, User } from 'lucide-react'
+import { Download, FileText, User } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
 import { toast } from 'react-hot-toast'
 import { useApi } from '@/hooks/useApi'
@@ -191,6 +191,17 @@ export default function AdminProfile() {
   }, [])
 
   const handleDragLeave = useCallback(() => setIsDragging(false), [])
+
+  // Prevent browser from navigating to dropped files anywhere on the page
+  useEffect(() => {
+    const prevent = (e: DragEvent) => e.preventDefault()
+    document.addEventListener('dragover', prevent)
+    document.addEventListener('drop', prevent)
+    return () => {
+      document.removeEventListener('dragover', prevent)
+      document.removeEventListener('drop', prevent)
+    }
+  }, [])
 
   // Clipboard paste — copy an image file then Ctrl+V anywhere on the page
   useEffect(() => {
@@ -408,8 +419,9 @@ export default function AdminProfile() {
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
-              className={`w-full flex flex-col items-center gap-3 rounded-xl border-2 border-dashed p-5 transition-colors duration-150 ${
-                isDragging ? 'border-brand-accent bg-brand-accent/10' : 'border-brand-border'
+              onClick={() => !uploading && photoInputRef.current?.click()}
+              className={`w-full flex flex-col items-center gap-3 rounded-xl border-2 border-dashed p-5 transition-colors duration-150 cursor-pointer ${
+                isDragging ? 'border-brand-accent bg-brand-accent/10' : 'border-brand-border hover:border-brand-accent/50'
               }`}
             >
               {/* Avatar preview */}
@@ -437,18 +449,8 @@ export default function AdminProfile() {
               </p>
             </div>
 
-            {/* Off-screen input — last resort if browser allows it */}
             <input ref={photoInputRef} type="file" accept="image/*"
               style={{ position: 'fixed', top: '-200vh', left: 0, width: 1, height: 1 }} />
-            <button
-              type="button"
-              onClick={() => photoInputRef.current?.click()}
-              disabled={uploading}
-              className="btn-secondary w-full flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <Upload className="w-4 h-4" />
-              {uploading ? 'Uploading…' : 'Browse files…'}
-            </button>
           </div>
 
           {/* QR Codes card */}
