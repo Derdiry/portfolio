@@ -142,48 +142,64 @@ export default function ProjectDetail() {
         {/* Lightbox carousel */}
         {lightboxIndex !== null && lbUrl && (
           <div
-            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
+            className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center gap-4 p-4"
             onClick={() => setLightboxIndex(null)}
           >
-            {/* Close */}
-            <button
-              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors z-10"
-              onClick={() => setLightboxIndex(null)}
-            >
-              <X className="w-7 h-7" />
-            </button>
-
-            {/* Counter */}
-            <span className="absolute top-4 left-1/2 -translate-x-1/2 text-white/60 text-sm font-mono">
-              {lightboxIndex + 1} / {screenshots.length}
-            </span>
-
-            {/* Prev */}
-            {screenshots.length > 1 && (
-              <button
-                className="absolute left-3 sm:left-6 text-white/60 hover:text-white transition-colors z-10 p-2"
-                onClick={(e) => { e.stopPropagation(); lbPrev() }}
-              >
-                <ChevronLeft className="w-9 h-9" />
+            {/* Top bar */}
+            <div className="flex items-center justify-between w-full max-w-5xl flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+              <span className="text-white/50 text-sm font-mono">{lightboxIndex + 1} / {screenshots.length}</span>
+              <button className="text-white/60 hover:text-white transition-colors" onClick={() => setLightboxIndex(null)}>
+                <X className="w-6 h-6" />
               </button>
-            )}
+            </div>
 
-            {/* Image */}
-            <img
-              src={lbUrl}
-              alt={`Screenshot ${lightboxIndex + 1}`}
-              className="max-w-[85vw] max-h-[85vh] rounded-lg object-contain"
-              onClick={(e) => e.stopPropagation()}
-            />
+            {/* Main image + arrows */}
+            <div className="flex items-center gap-3 flex-1 min-h-0 w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+              {screenshots.length > 1 && (
+                <button
+                  className="flex-shrink-0 text-white/50 hover:text-white transition-colors p-1"
+                  onClick={lbPrev}
+                >
+                  <ChevronLeft className="w-8 h-8" />
+                </button>
+              )}
+              <img
+                src={lbUrl}
+                alt={`Screenshot ${lightboxIndex + 1}`}
+                className="flex-1 min-w-0 max-h-[65vh] rounded-lg object-contain"
+              />
+              {screenshots.length > 1 && (
+                <button
+                  className="flex-shrink-0 text-white/50 hover:text-white transition-colors p-1"
+                  onClick={lbNext}
+                >
+                  <ChevronRight className="w-8 h-8" />
+                </button>
+              )}
+            </div>
 
-            {/* Next */}
+            {/* Filmstrip */}
             {screenshots.length > 1 && (
-              <button
-                className="absolute right-3 sm:right-6 text-white/60 hover:text-white transition-colors z-10 p-2"
-                onClick={(e) => { e.stopPropagation(); lbNext() }}
+              <div
+                className="flex gap-2 overflow-x-auto max-w-5xl w-full flex-shrink-0 pb-1 scroll-smooth"
+                style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.2) transparent' }}
+                onClick={(e) => e.stopPropagation()}
               >
-                <ChevronRight className="w-9 h-9" />
-              </button>
+                {screenshots.map((src, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setLightboxIndex(i)}
+                    className={`flex-shrink-0 h-14 w-24 rounded overflow-hidden transition-all
+                      ${i === lightboxIndex ? 'ring-2 ring-brand-accent opacity-100' : 'opacity-40 hover:opacity-70'}`}
+                  >
+                    <img
+                      src={getPhotoUrl(src) ?? src}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         )}
