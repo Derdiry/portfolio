@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useCallback, useState } from 'react'
 import { Download, FileText, Upload, User } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
 import { toast } from 'react-hot-toast'
@@ -114,11 +114,9 @@ export default function AdminProfile() {
   // Photo state
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
-  const photoInputRef  = useRef<HTMLInputElement>(null)
 
   // Resume state
   const [uploadingResume, setUploadingResume] = useState(false)
-  const resumeInputRef = useRef<HTMLInputElement>(null)
 
   // Sync form when profile loads (only on first load)
   if (profile && !form) {
@@ -158,59 +156,52 @@ export default function AdminProfile() {
     }
   }
 
-  // Native listener — bypasses React event delegation which extensions can block
-  const onPhotoChange = useCallback(async () => {
-    const input = photoInputRef.current
-    const file  = input?.files?.[0]
-    if (!file) return
-    setPreviewUrl(URL.createObjectURL(file))
-    setUploading(true)
-    try {
-      await adminUploadPhoto(file)
-      toast.success('Photo uploaded')
-      refetch()
-    } catch (err) {
-      console.error('Photo upload error:', err)
-      toast.error(err instanceof Error ? err.message : 'Upload failed')
-    } finally {
-      setUploading(false)
-      if (input) input.value = ''
+  // Create input on-the-fly — nothing in the DOM for extensions to pre-intercept
+  const handlePhotoUpload = useCallback(() => {
+    if (uploading) return
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      if (!file) return
+      setPreviewUrl(URL.createObjectURL(file))
+      setUploading(true)
+      try {
+        await adminUploadPhoto(file)
+        toast.success('Photo uploaded')
+        refetch()
+      } catch (err) {
+        console.error('Photo upload error:', err)
+        toast.error(err instanceof Error ? err.message : 'Upload failed')
+      } finally {
+        setUploading(false)
+      }
     }
-  }, [refetch])
+    input.click()
+  }, [uploading, refetch])
 
-  const onResumeChange = useCallback(async () => {
-    const input = resumeInputRef.current
-    const file  = input?.files?.[0]
-    if (!file) return
-    setUploadingResume(true)
-    try {
-      await adminUploadResume(file)
-      toast.success('Resume uploaded')
-    } catch (err) {
-      console.error('Resume upload error:', err)
-      toast.error(err instanceof Error ? err.message : 'Upload failed')
-    } finally {
-      setUploadingResume(false)
-      if (input) input.value = ''
+  const handleResumeUpload = useCallback(() => {
+    if (uploadingResume) return
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.pdf'
+    input.onchange = async () => {
+      const file = input.files?.[0]
+      if (!file) return
+      setUploadingResume(true)
+      try {
+        await adminUploadResume(file)
+        toast.success('Resume uploaded')
+      } catch (err) {
+        console.error('Resume upload error:', err)
+        toast.error(err instanceof Error ? err.message : 'Upload failed')
+      } finally {
+        setUploadingResume(false)
+      }
     }
-  }, [])
-
-  useEffect(() => {
-    const el = photoInputRef.current
-    if (!el) return
-    el.addEventListener('change', onPhotoChange)
-    return () => el.removeEventListener('change', onPhotoChange)
-  }, [onPhotoChange])
-
-  useEffect(() => {
-    const el = resumeInputRef.current
-    if (!el) return
-    el.addEventListener('change', onResumeChange)
-    return () => el.removeEventListener('change', onResumeChange)
-  }, [onResumeChange])
-
-  // Kept for type-compatibility on the overlay inputs (no-op — native listener handles it)
-  const noop = (_e: ChangeEvent<HTMLInputElement>) => {}
+    input.click()
+  }, [uploadingResume])
 
   if (loading) {
     return (
@@ -383,20 +374,15 @@ export default function AdminProfile() {
               )}
             </div>
 
-            <div className="relative">
-              <div className={`btn-secondary flex items-center gap-2 select-none ${uploading ? 'opacity-60' : ''}`}>
-                <Upload className="w-4 h-4" />
-                {uploading ? 'Uploading…' : 'Upload Photo'}
-              </div>
-              <input
-                ref={photoInputRef}
-                type="file"
-                accept="image/*"
-                onChange={noop}
-                disabled={uploading}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={handlePhotoUpload}
+              disabled={uploading}
+              className="btn-secondary flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <Upload className="w-4 h-4" />
+              {uploading ? 'Uploading…' : 'Upload Photo'}
+            </button>
             <p className="text-xs text-brand-muted text-center">
               Accepts any image. Auto-cropped to 400×400 square.
             </p>
@@ -432,20 +418,15 @@ export default function AdminProfile() {
               <FileText className="w-8 h-8 text-brand-muted" />
             </div>
 
-            <div className="relative w-full">
-              <div className={`btn-secondary flex items-center gap-2 cursor-pointer justify-center w-full select-none ${uploadingResume ? 'opacity-60' : ''}`}>
-                <Upload className="w-4 h-4" />
-                {uploadingResume ? 'Uploading…' : 'Upload PDF'}
-              </div>
-              <input
-                ref={resumeInputRef}
-                type="file"
-                accept=".pdf"
-                onChange={noop}
-                disabled={uploadingResume}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-              />
-            </div>
+            <button
+              type="button"
+              onClick={handleResumeUpload}
+              disabled={uploadingResume}
+              className="btn-secondary flex items-center gap-2 justify-center w-full disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <Upload className="w-4 h-4" />
+              {uploadingResume ? 'Uploading…' : 'Upload PDF'}
+            </button>
 
             <p className="text-xs text-brand-muted text-center">
               Current resume served at /uploads/resume.pdf
