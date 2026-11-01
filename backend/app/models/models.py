@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Integer, LargeBinary, String, Text
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -122,3 +122,14 @@ class ContactMessage(Base):
     subject: Mapped[str] = mapped_column(String(300))
     message: Mapped[str] = mapped_column(Text)
     sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class UploadedFile(Base):
+    """Uploaded files (profile photo, resume, screenshots) stored in Postgres so they
+    survive restarts on hosts with ephemeral disks. Served at /api/uploads/{filename}."""
+    __tablename__ = "uploaded_files"
+
+    filename: Mapped[str] = mapped_column(String(200), primary_key=True)
+    content_type: Mapped[str] = mapped_column(String(100))
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
