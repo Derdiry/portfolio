@@ -1,0 +1,21 @@
+# Secrets and local env files
+.env
+.env.*
+!.env.example
+
+# Local virtualenvs
+.venv
+venv
+
+# Python caches and test artifacts
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+.coverage
+htmlcov
+
+# Local uploads (files are stored in Postgres)
+uploads/

@@ -1,4 +1,3 @@
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -47,8 +46,6 @@ app.add_middleware(
 app.include_router(public.router, prefix="/api")
 app.include_router(auth.router,   prefix="/api/auth")
 app.include_router(admin.router,  prefix="/api/admin")
-
-os.makedirs("uploads", exist_ok=True)
 
 
 @app.get("/health")

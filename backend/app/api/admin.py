@@ -1,5 +1,4 @@
 import io
-import os
 import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
@@ -12,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.models.models import Analytics, Education, Experience, Profile, Project, Skill
+from app.models.models import Analytics, Education, Experience, Profile, Project, Skill, UploadedFile
 from app.schemas.schemas import (
     AnalyticsStats,
     EducationCreate,
@@ -70,6 +69,27 @@ async def update_profile(
     )
 
 
+# ── Stored files ─────────────────────────────────────────────────────────────
+
+def _jpeg_bytes(image: Image.Image, quality: int) -> bytes:
+    buf = io.BytesIO()
+    image.save(buf, "JPEG", quality=quality)
+    return buf.getvalue()
+
+
+async def _store_file(db: AsyncSession, filename: str, content_type: str, data: bytes) -> str:
+    """Insert or replace a file in Postgres (caller commits); returns its public URL."""
+    await db.merge(UploadedFile(filename=filename, content_type=content_type, data=data))
+    return f"/uploads/{filename}"
+
+
+async def _delete_file(db: AsyncSession, url: str | None) -> None:
+    if url and url.startswith("/uploads/"):
+        stored = await db.get(UploadedFile, url.removeprefix("/uploads/"))
+        if stored:
+            await db.delete(stored)
+
+
 # ── Photo Upload ─────────────────────────────────────────────────────────────
 
 @router.post("/profile/photo", response_model=PhotoUploadResponse)
@@ -90,19 +110,15 @@ async def upload_profile_photo(
     # Resize to 400x400
     image = image.resize((400, 400), Image.LANCZOS)
 
-    # Save to uploads/
-    filename = f"{uuid.uuid4().hex}.jpg"
-    os.makedirs("uploads", exist_ok=True)
-    image.save(os.path.join("uploads", filename), "JPEG", quality=90)
+    photo_url = await _store_file(db, f"{uuid.uuid4().hex}.jpg", "image/jpeg", _jpeg_bytes(image, 90))
 
-    photo_url = f"/uploads/{filename}"
-
-    # Update profile
+    # Update profile, dropping the photo it replaces
     result = await db.execute(select(Profile).where(Profile.id == 1))
     profile = result.scalar_one_or_none()
     if profile:
+        await _delete_file(db, profile.photo_url)
         profile.photo_url = photo_url
-        await db.commit()
+    await db.commit()
 
     return PhotoUploadResponse(photo_url=photo_url)
 
@@ -116,11 +132,9 @@ async def upload_resume(
 ):
     if not file.content_type or file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="File must be a PDF")
-    content = await file.read()
-    os.makedirs("uploads", exist_ok=True)
-    with open("uploads/resume.pdf", "wb") as f:
-        f.write(content)
-    return PhotoUploadResponse(photo_url="/uploads/resume.pdf")
+    resume_url = await _store_file(db, "resume.pdf", "application/pdf", await file.read())
+    await db.commit()
+    return PhotoUploadResponse(photo_url=resume_url)
 
 
 # ── Projects ─────────────────────────────────────────────────────────────────
@@ -184,12 +198,12 @@ async def upload_project_screenshot(
     image = Image.open(io.BytesIO(content)).convert("RGB")
     image.thumbnail((1280, 960), Image.LANCZOS)
 
-    filename = f"screenshot_{project_id}_{uuid.uuid4().hex[:8]}.jpg"
-    os.makedirs("uploads", exist_ok=True)
-    image.save(os.path.join("uploads", filename), "JPEG", quality=85)
+    url = await _store_file(
+        db, f"screenshot_{project_id}_{uuid.uuid4().hex[:8]}.jpg", "image/jpeg", _jpeg_bytes(image, 85)
+    )
 
     screenshots = list(project.screenshots or [])
-    screenshots.append(f"/uploads/{filename}")
+    screenshots.append(url)
     project.screenshots = screenshots
     flag_modified(project, "screenshots")
     await db.commit()
@@ -212,11 +226,8 @@ async def delete_project_screenshot(
     screenshots = [s for s in (project.screenshots or []) if s != url]
     project.screenshots = screenshots
     flag_modified(project, "screenshots")
+    await _delete_file(db, url)
     await db.commit()
-
-    filepath = os.path.join("uploads", filename)
-    if os.path.exists(filepath):
-        os.remove(filepath)
 
     await db.refresh(project)
     return project

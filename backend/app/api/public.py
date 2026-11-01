@@ -1,14 +1,13 @@
-import os
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.models.models import Analytics, ContactMessage, Education, Experience, Profile, Project, Skill
+from app.models.models import Analytics, ContactMessage, Education, Experience, Profile, Project, Skill, UploadedFile
 from app.schemas.schemas import (
     AnalyticsStats,
     ContactRequest,
@@ -122,11 +121,13 @@ async def contact(body: ContactRequest, db: AsyncSession = Depends(get_db)):
 # ── Uploads (served via API so CORSMiddleware adds headers) ──────────────────
 
 @router.get("/uploads/{filename}")
-async def serve_upload(filename: str):
-    path = os.path.join("uploads", filename)
-    if not os.path.exists(path):
+async def serve_upload(filename: str, db: AsyncSession = Depends(get_db)):
+    stored = await db.get(UploadedFile, filename)
+    if not stored:
         raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(path)
+    # Photos and screenshots get unique names; resume.pdf is replaced in place.
+    cache = "no-cache" if filename == "resume.pdf" else "public, max-age=86400"
+    return Response(content=stored.data, media_type=stored.content_type, headers={"Cache-Control": cache})
 
 
 # ── Analytics ────────────────────────────────────────────────────────────────

@@ -296,8 +296,11 @@ async def seed() -> None:
         # Admin user
         result = await db.execute(select(User).where(User.username == settings.admin_username))
         if not result.scalar_one_or_none():
-            db.add(User(username=settings.admin_username, password_hash=hash_password(settings.admin_password)))
-            print(f"Created admin user: {settings.admin_username}")
+            if settings.admin_password:
+                db.add(User(username=settings.admin_username, password_hash=hash_password(settings.admin_password)))
+                print(f"Created admin user: {settings.admin_username}")
+            else:
+                print("No admin user and ADMIN_PASSWORD is unset; skipping admin creation.")
 
         # Profile
         result = await db.execute(select(Profile).where(Profile.id == 1))

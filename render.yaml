@@ -1,0 +1,24 @@
+# Render Blueprint for the portfolio API (FastAPI). Database: Neon Postgres (aws-eu-west-2).
+# Secrets use `sync: false`: Render prompts for them when the service is first created
+# and never reads them from this file. See DEPLOY.md.
+services:
+  - type: web
+    name: portfolio-api
+    runtime: python
+    plan: free
+    region: frankfurt # closest Render region to the Neon project (London)
+    branch: main
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.12 # matches the local environment the backend is tested on
+      - key: DATABASE_URL_UNPOOLED # Neon direct connection string
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://www.moderdiry.com,https://moderdiry.com
