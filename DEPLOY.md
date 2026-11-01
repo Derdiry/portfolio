@@ -11,7 +11,7 @@ git init
 git add .
 git commit -m "Initial portfolio commit"
 git branch -M main
-git remote add origin https://github.com/mohamedalderdiry/portfolio.git
+git remote add origin https://github.com/Derdiry/portfolio.git
 git push -u origin main
 ```
 

@@ -7,12 +7,12 @@ export const PROFILE = {
   email: 'mod.derdiry@gmail.com',
   phone: '+966 570 126 493',
   linkedin: 'linkedin.com/in/mohamedalderdiry',
-  github: 'github.com/mohamedalderdiry',
+  github: 'github.com/Derdiry',
   bio: `Machine Learning Engineer with a Master's in Computer Science from Donghua University. I build production AI systems across computer vision, time series forecasting, and NLP/RAG, focusing on taking models from research to deployment.
 
 I work on computer vision systems for agriculture and healthcare using Vision Transformers, ResNets, and EfficientNets. My experience includes transfer learning for specialized domains, large-scale geospatial platforms, and implementing model interpretability techniques like Grad-CAM for high-stakes domains.
 
-For time series work, I built a 36-model ensemble benchmarking LSTM, GRU, TSMixer, PatchTST, Temporal Fusion Transformer, and Chronos. The most interesting finding: conflict event data from ACLED predicted commodity prices better than technical indicators in unstable markets. Post-coup regime change outranked everything else in the TFT's attention weights at a 30-day lag.
+In my gold forecasting work, I found that deep models failed on Sudan's market because prices after a currency collapse lay far outside anything seen in training. Fixing the scaling removed the failure, but under preregistered tests no model, including a foundation model, beat a simple random walk, and model selection on validation data reversed after the regime shift. That experience drives my interest in forecasting and decision-making that stays reliable when the world changes.
 
 I've deployed a RAG application using LangChain and ChromaDB with hybrid BM25/vector search on Hugging Face Spaces. Built a model-agnostic serving platform with FastAPI, MLflow, and Docker for zero-code deployment with automated versioning and monitoring.
 
@@ -91,7 +91,7 @@ export const SKILLS: SkillGroup[] = [
     category: 'Time Series',
     skills: [
       'TSMixer', 'PatchTST', 'Temporal Fusion Transformer',
-      'LSTM', 'GRU', 'Chronos', 'Walk-Forward Validation',
+      'LSTM', 'GRU', 'Chronos', 'Rolling-Origin Evaluation',
     ],
   },
   {
@@ -112,7 +112,7 @@ export const SKILLS: SkillGroup[] = [
     category: 'Data',
     skills: [
       'Pandas', 'NumPy', 'Matplotlib', 'SQLAlchemy', 'Alembic',
-      'Jupyter', 'DVC', 'ACLED API', 'FRED API',
+      'Jupyter', 'DVC', 'ACLED data', 'FRED API',
     ],
   },
 ]

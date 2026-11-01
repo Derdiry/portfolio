@@ -13,7 +13,7 @@ import Seo from '@/components/Seo'
 const TYPING_WORDS = ['ML Engineer', 'Vision Systems', 'Time Series', 'RAG / NLP', 'MLOps']
 
 const STATS = [
-  { value: '36', label: 'Models Trained' },
+  { value: '231', label: 'Configurations Tested' },
   { value: '5+', label: 'Production Projects' },
   { value: '1',  label: 'Patent' },
   { value: '7',  label: 'Tech Stacks' },
@@ -65,7 +65,7 @@ export default function Home() {
             "url": "https://moderdiry.com",
             "sameAs": [
               "https://www.linkedin.com/in/mohamedalderdiry",
-              "https://github.com/mohamedalderdiry"
+              "https://github.com/Derdiry"
             ]
           })}
         </script>
