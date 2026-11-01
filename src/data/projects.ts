@@ -90,7 +90,7 @@ export const PROJECTS: Project[] = [
     shortDescription:
       'Generic production platform serving any MLflow-registered model via REST API — API key auth, Prometheus metrics, Grafana dashboards, batch prediction, A/B testing, and GitHub Actions CI/CD.',
     description: [
-      'A model-agnostic serving platform that takes any MLflow-registered PyTorch, TensorFlow, or scikit-learn model and exposes it as a production REST endpoint in under 5 minutes — no code changes required. Built as reusable infrastructure backing both the Gold Price Forecaster and the Plant Disease Detector.',
+      'A model-agnostic serving platform that takes any MLflow-registered PyTorch, TensorFlow, or scikit-learn model and exposes it as a production REST endpoint in under 5 minutes — no code changes required. Built as reusable infrastructure backing the Plant Disease Detector.',
       'The platform handles everything production requires: API key authentication, input validation, batch prediction, Prometheus metrics per model (request count, latency histograms), Grafana dashboards, and health checks for load balancer integration. Model versions are managed through MLflow\'s registry — promote Staging → Production without redeployment.',
       'ONNX quantization support achieves 40-60% latency reduction for compatible models. A/B testing infrastructure splits traffic between model versions with configurable ratios for safe rollouts.',
     ],
@@ -116,7 +116,7 @@ export const PROJECTS: Project[] = [
       '5-minute model deployment time (copy mlruns/, docker compose up)',
       '40-60% inference latency reduction with ONNX quantization',
       'Supports PyTorch, TensorFlow, and scikit-learn models without modification',
-      'Validated against time-series (Gold Forecaster) and CV (Plant Disease Detector) workloads',
+      'Validated against CV (Plant Disease Detector) workloads',
     ],
     screenshots: [],
     featured: true,

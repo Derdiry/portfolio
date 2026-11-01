@@ -155,7 +155,7 @@ PROJECTS_DATA = [
             "5-minute model deployment time",
             "40-60% inference latency reduction with ONNX quantization",
             "Supports PyTorch, TensorFlow, and scikit-learn models without modification",
-            "Validated against time-series and CV workloads",
+            "Validated against CV workloads",
         ],
         "github_url": None,
         "demo_url": None,

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://mohamedalderdiry.vercel.app/sitemap.xml
+Sitemap: https://www.moderdiry.com/sitemap.xml
