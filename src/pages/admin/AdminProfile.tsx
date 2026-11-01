@@ -464,7 +464,7 @@ export default function AdminProfile() {
               />
               <QrCard
                 label="Portfolio"
-                value={typeof window !== 'undefined' ? window.location.origin : 'https://mohamedalderdiry.com'}
+                value={typeof window !== 'undefined' ? window.location.origin : 'https://www.moderdiry.com'}
                 filename="qr-portfolio.png"
               />
               <QrCard

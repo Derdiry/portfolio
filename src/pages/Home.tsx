@@ -13,10 +13,8 @@ import Seo from '@/components/Seo'
 const TYPING_WORDS = ['ML Engineer', 'Vision Systems', 'Time Series', 'RAG / NLP', 'MLOps']
 
 const STATS = [
-  { value: '36', label: 'Models Trained' },
-  { value: '5+', label: 'Production Projects' },
+  { value: '231', label: 'Configurations Tested' },
   { value: '1',  label: 'Patent' },
-  { value: '7',  label: 'Tech Stacks' },
 ]
 
 const fadeUp = {
@@ -65,7 +63,7 @@ export default function Home() {
             "url": "https://moderdiry.com",
             "sameAs": [
               "https://www.linkedin.com/in/mohamedalderdiry",
-              "https://github.com/mohamedalderdiry"
+              "https://github.com/Derdiry"
             ]
           })}
         </script>
@@ -204,7 +202,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }} transition={{ duration: 0.5 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+            className="grid grid-cols-2 gap-8 max-w-md mx-auto"
           >
             {STATS.map(({ value, label }) => (
               <div key={label} className="text-center">
