@@ -1,3 +1,5 @@
+# UNUSED: the backend moved to Render + Neon (see render.yaml and DEPLOY.md).
+# Kept for reference only; Railway no longer hosts this project.
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"

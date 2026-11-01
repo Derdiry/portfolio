@@ -8,6 +8,8 @@ dist/
 .env
 .env.local
 backend/.env
+backend/.env.*
+!backend/.env.example
 
 # Editor
 .DS_Store
@@ -15,6 +17,9 @@ backend/.env
 *.swp
 
 # Python
+backend/.venv/
+venv/
+.venv/
 __pycache__/
 *.pyc
 *.pyo
@@ -26,3 +31,4 @@ backend/uploads/
 
 # Misc
 *.log
+.neon
