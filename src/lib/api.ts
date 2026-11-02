@@ -317,7 +317,7 @@ export const adminUpdateSkills = (groups: ApiSkillGroup[]) =>
 export const getPhotoUrl = (photo_url: string | null): string | null => {
   if (!photo_url) return null
   if (photo_url.startsWith('http')) return photo_url
-  // Return same-origin /uploads/* — Vercel proxies to Railway, bypassing Adblock
+  // Return same-origin /uploads/* — Vercel proxies to the Render backend, bypassing Adblock
   return photo_url.startsWith('/uploads/') ? photo_url : `/uploads/${photo_url.split('/').pop()}`
 }
 

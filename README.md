@@ -92,7 +92,7 @@ VITE_API_URL=http://localhost:4000
 
 ### Phase 4 — Deploy
 - [ ] Vercel (frontend)
-- [ ] Railway/Render (backend + DB)
+- [ ] Render (backend) + Neon (DB)
 - [ ] GitHub Actions CI/CD
 - [ ] Custom domain + SSL
 
@@ -117,5 +117,6 @@ npm i -g vercel
 vercel --prod
 
 # Environment variable on Vercel:
-# VITE_API_URL = https://your-backend-url.railway.app
+# VITE_API_URL = https://portfolio-api-63am.onrender.com
+# Full setup (Vercel + Render + Neon): see DEPLOY.md
 ```
